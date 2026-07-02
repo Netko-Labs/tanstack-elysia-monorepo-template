@@ -1,0 +1,23 @@
+import { createLogger } from '@temp-repo/logger'
+import { Elysia } from 'elysia'
+
+const logger = createLogger('api')
+
+/**
+ * The Elysia application. Mounted at `/api` inside the TanStack Start server
+ * via `app.handle(request)`. `export type App` is consumed by Eden Treaty.
+ *
+ * Add routes by chaining `.get`/`.post`/... or `.use(myRoutes)`. Validators
+ * accept Zod schemas directly (e.g. `{ body: SomeZodSchema }`), and async
+ * generator routes stream over SSE (Eden consumes them as async iterables).
+ */
+export const app = new Elysia({ prefix: '/api' })
+  .onError(({ code, path, error }) => {
+    logger.error(
+      { code, path, err: error instanceof Error ? error.message : String(error) },
+      `API error: ${code}`,
+    )
+  })
+  .get('/health', () => ({ status: 'ok' }))
+
+export type App = typeof app

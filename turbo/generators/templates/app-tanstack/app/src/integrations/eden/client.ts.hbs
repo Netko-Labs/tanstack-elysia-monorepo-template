@@ -1,0 +1,15 @@
+import type { App } from '@temp-repo/{{ name }}-api'
+import { treaty } from '@elysiajs/eden'
+
+function getBaseUrl() {
+  if (typeof window !== 'undefined') return window.location.origin
+  return process.env.BASE_URL ?? `http://localhost:${process.env.PORT ?? 3000}`
+}
+
+/**
+ * Eden Treaty — end-to-end typed client for the Elysia API (same-origin `/api`).
+ * Every call returns `{ data, error }`; it never throws on non-2xx.
+ */
+export const eden = treaty<App>(getBaseUrl(), {
+  fetch: { credentials: 'include' },
+})

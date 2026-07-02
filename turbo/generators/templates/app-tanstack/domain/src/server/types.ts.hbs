@@ -1,0 +1,44 @@
+/**
+ * ✧･ﾟ: *✧･ﾟ:* SERVER TYPES *:･ﾟ✧*:･ﾟ✧
+ *
+ * Types for production server configuration and asset management (◕‿◕✿)
+ */
+
+export interface ServerConfig {
+  port: number
+  clientDirectory: string
+  serverEntryPoint: string
+}
+
+export interface AssetPreloadConfig {
+  maxPreloadBytes: number
+  includePatterns: RegExp[]
+  excludePatterns: RegExp[]
+  verbose: boolean
+  enableEtag: boolean
+  enableGzip: boolean
+  gzipMinBytes: number
+  gzipMimeTypes: string[]
+}
+
+export interface AssetMetadata {
+  route: string
+  size: number
+  type: string
+}
+
+export interface InMemoryAsset {
+  raw: Uint8Array
+  gz?: Uint8Array
+  etag?: string
+  type: string
+  immutable: boolean
+  size: number
+}
+
+export interface PreloadResult {
+  routes: Record<string, (req: Request) => Response | Promise<Response>>
+  loaded: AssetMetadata[]
+  skipped: AssetMetadata[]
+}
+

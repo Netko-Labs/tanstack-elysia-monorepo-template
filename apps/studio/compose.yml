@@ -1,0 +1,25 @@
+services:
+  # Studio App Services
+  db-studio:
+    image: postgres:17
+    profiles: [studio]
+    ports:
+      - "${STUDIO_DB_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: temp-repo
+    volumes:
+      - studio_postgres_data:/var/lib/postgresql/data
+
+  redis-studio:
+    image: redis:latest
+    profiles: [studio]
+    ports:
+      - "${STUDIO_REDIS_PORT:-6379}:6379"
+    volumes:
+      - studio_redis_data:/data
+
+volumes:
+  studio_postgres_data:
+  studio_redis_data:

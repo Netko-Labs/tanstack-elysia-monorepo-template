@@ -1,0 +1,21 @@
+{
+  "name": "@temp-repo/{{ name }}-service",
+  "scripts": {
+    "check-types": "tsgo --noEmit"
+  },
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@temp-repo/{{ name }}-config": "workspace:*",
+    "@temp-repo/{{ name }}-domain": "workspace:*",
+    "@temp-repo/{{ name }}-repository": "workspace:*",
+    "@temp-repo/logger": "workspace:*",
+    "@temp-repo/typescript-config": "workspace:*",
+    "drizzle-orm": "^0.44.6"
+  }
+}
+

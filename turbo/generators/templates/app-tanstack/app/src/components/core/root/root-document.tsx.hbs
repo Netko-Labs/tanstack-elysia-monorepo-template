@@ -1,0 +1,23 @@
+import { HeadContent, Scripts } from '@tanstack/react-router'
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import * as TanstackQuery from '~/integrations/tanstack-query/root-provider'
+import type { RootDocumentProps } from './lib'
+
+export function RootDocument({ children }: RootDocumentProps) {
+  const rqContext = TanstackQuery.getContext()
+
+  return (
+    <TanstackQuery.Provider {...rqContext}>
+      <html lang="en">
+        <head>
+          <HeadContent />
+        </head>
+        <body>
+          {children}
+          <TanStackRouterDevtools position="bottom-right" />
+          <Scripts />
+        </body>
+      </html>
+    </TanstackQuery.Provider>
+  )
+}

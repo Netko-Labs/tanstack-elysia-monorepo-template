@@ -1,0 +1,23 @@
+{
+  "name": "@temp-repo/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "repo": "./src/index.ts"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsgo --noEmit",
+    "cli": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "@temp-repo/typescript-config": "workspace:*",
+    "glob": "^11.0.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,29 @@
+import { z } from 'zod'
+
+/**
+ * ✧･ﾟ: *✧･ﾟ:* {{ constantCase name }} CONFIG SCHEMA *:･ﾟ✧*:･ﾟ✧
+ *
+ * Configuration validation schema for the {{ name }} app (◕‿◕✿)
+ */
+
+export const {{ pascalCase name }}ConfigSchema = z.object({
+  app: z.object({
+    dev: z.boolean(),
+    baseUrl: z.string().url(),
+    port: z.number().int().positive(),
+    cors: z.array(z.string()),
+    encryptionKey: z.string(),
+  }),
+  cache: z.object({
+    url: z.string(),
+  }),
+  db: z.object({
+    url: z.string(),
+  }),
+  auth: z.object({
+    secret: z.string().optional(),
+  }),
+})
+
+export type {{ pascalCase name }}Config = z.infer<typeof {{ pascalCase name }}ConfigSchema>
+

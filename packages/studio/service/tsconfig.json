@@ -1,0 +1,10 @@
+{
+  "extends": "@temp-repo/typescript-config/bun.json",
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "declaration": false,
+    "declarationMap": false
+  }
+}

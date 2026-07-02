@@ -1,0 +1,39 @@
+import { z } from 'zod'
+
+/**
+ * ✧･ﾟ: *✧･ﾟ:* CONTEXT SCHEMAS *:･ﾟ✧*:･ﾟ✧
+ *
+ * Request context types for the API (◕‿◕✿)
+ */
+
+export const UserSchema = z.object({
+  id: z.string(),
+  email: z.string().email().optional(),
+  name: z.string().optional(),
+})
+
+export type User = z.infer<typeof UserSchema>
+
+export const SessionSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  expiresAt: z.date(),
+})
+
+export type Session = z.infer<typeof SessionSchema>
+
+export const ContextSchema = z.object({
+  user: UserSchema.nullable(),
+  session: SessionSchema.nullable(),
+})
+
+export type Context = z.infer<typeof ContextSchema>
+
+// Authenticated context with non-null user
+export const AuthenticatedContextSchema = z.object({
+  user: UserSchema,
+  session: SessionSchema,
+})
+
+export type AuthenticatedContext = z.infer<typeof AuthenticatedContextSchema>
+

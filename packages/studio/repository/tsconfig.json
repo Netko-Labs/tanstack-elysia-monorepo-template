@@ -1,0 +1,10 @@
+{
+  "extends": "@temp-repo/typescript-config/bun.json",
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../domain/src/entities/chat.ts",
+    "../domain/src/entities/llm.ts"
+  ],
+  "exclude": ["node_modules"]
+}

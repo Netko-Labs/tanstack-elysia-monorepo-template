@@ -1,0 +1,124 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error",
+        "useUniqueElementIds": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noShadowRestrictedNames": "off",
+        // Tailwind CSS uses custom at-rules (@apply, @theme) that Biome doesn't recognize
+        "noUnknownAtRules": "off"
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "off",
+        "useValidAnchor": "off",
+        // UI component libraries may use role="group" and other patterns
+        "useSemanticElements": "off",
+        "noLabelWithoutControl": "off",
+        "useKeyWithClickEvents": "off"
+      },
+      "style": {
+        "useNamingConvention": {
+          "level": "error",
+          "options": {
+            "strictCase": false,
+            "conventions": [
+              {
+                "selector": {
+                  "kind": "objectLiteralProperty",
+                  "scope": "any"
+                },
+                "formats": ["camelCase", "CONSTANT_CASE", "PascalCase", "snake_case"]
+              },
+              {
+                "selector": {
+                  "kind": "typeProperty",
+                  "scope": "any"
+                },
+                "formats": ["camelCase", "PascalCase", "CONSTANT_CASE"]
+              },
+              {
+                "selector": {
+                  "kind": "function",
+                  "scope": "any"
+                },
+                "formats": ["camelCase", "PascalCase"]
+              }
+            ]
+          }
+        },
+        "useFilenamingConvention": "off",
+        "noUselessElse": "error",
+        "useImportType": "error",
+        "useConst": "error",
+        "useAsConstAssertion": "error",
+        "useDefaultParameterLast": "error",
+        "useEnumInitializers": "error",
+        "useSelfClosingElements": "error",
+        "useSingleVarDeclarator": "error",
+        "noUnusedTemplateLiteral": "error",
+        "useNumberNamespace": "error",
+        "noInferrableTypes": "error"
+      }
+    }
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 100,
+    "attributePosition": "auto"
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "all",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "always",
+      "bracketSpacing": true,
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto"
+    }
+  },
+  "json": {
+    "parser": {
+      "allowTrailingCommas": true
+    }
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.turbo",
+      "!**/.next",
+      "!**/routeTree.gen.ts",
+      "!**/public",
+      "!**/generated",
+      "!**/dist",
+      "!**/src/components/ui",
+      "!**/src/components/ai-elements",
+      "!**/packages/shared/ui/src/components",
+      "!**/.tanstack",
+      "!**/.nitro",
+      "!**/.output",
+      "!**/src/styles.css",
+      "!**/drizzle"
+    ]
+  }
+}

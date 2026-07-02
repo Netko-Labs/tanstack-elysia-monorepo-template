@@ -1,0 +1,52 @@
+import { createMiddleware, createStart } from '@tanstack/react-start'
+import { logger } from '@temp-repo/logger'
+
+/**
+ * Request logger middleware — logs incoming requests and outgoing responses.
+ *
+ * Note: API routes (/api) are excluded as they have their own logging.
+ */
+const requestLoggerMiddleware = createMiddleware().server(async ({ next, request }) => {
+  const url = new URL(request.url)
+  const path = url.pathname
+
+  if (path.startsWith('/api')) {
+    return next()
+  }
+
+  const startTime = Date.now()
+  const { method } = request
+
+  logger.info({ method, path, query: url.search || undefined }, '→ incoming')
+
+  try {
+    const nextResponse = await next()
+    const duration = Date.now() - startTime
+    const status = nextResponse.response.status
+
+    logger.info({ method, path, status, duration }, '← completed')
+
+    return nextResponse
+  } catch (error) {
+    const duration = Date.now() - startTime
+
+    logger.error(
+      {
+        method,
+        path,
+        duration,
+        err: error instanceof Error ? error.message : String(error),
+      },
+      '✗ failed',
+    )
+
+    throw error
+  }
+})
+
+/**
+ * TanStack Start instance with global middleware.
+ */
+export const startInstance = createStart(() => ({
+  requestMiddleware: [requestLoggerMiddleware],
+}))

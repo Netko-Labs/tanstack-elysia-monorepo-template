@@ -1,0 +1,70 @@
+name: CI
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, ready_for_review, reopened, edited]
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run check-types
+      - run: bun run fmt-lint
+
+  commitlint:
+    if: github.event_name == 'pull_request'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx commitlint --from ${{ github.event.pull_request.base.sha }} --to ${{ github.event.pull_request.head.sha }}
+
+  review:
+    needs: [quality, commitlint]
+    if: github.event_name == 'pull_request' && github.event.pull_request.draft == false
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          claude_args: "--model anthropic/claude-sonnet-4.6 --max-turns 15"
+          prompt: |
+            Review the pull request diff. Leave inline review comments for specific
+            issues and post a concise summary. Focus on:
+            - Adherence to the conventions in CLAUDE.md and docs/conventions.md
+              (module layout, lib/ + shared/ model, no inline types, UPPER_SNAKE
+              constants, ≤300-line files, ≤3 hooks per component file)
+            - Architecture flow: domain → repository → service → trpc → ui
+            - drizzle-zod patterns (createInsertSchema/createUpdateSchema/createSelectSchema)
+            - Biome style (single quotes, 2-space indent, 100-char width)
+            - Type safety (no `any`, no ts-ignore/ts-expect-error) and security concerns
+            - Unnecessary new dependencies
+
+            Report every finding with a confidence level and severity; a maintainer
+            will decide what to act on. Approve with `gh pr review --approve` if it
+            looks good, or request changes for significant issues.
+        env:
+          # Route Claude Code through Vercel AI Gateway (native Anthropic Messages API).
+          # ANTHROPIC_API_KEY must be empty so the CLI uses ANTHROPIC_AUTH_TOKEN.
+          ANTHROPIC_BASE_URL: https://ai-gateway.vercel.sh
+          ANTHROPIC_AUTH_TOKEN: ${{ secrets.AI_GATEWAY_API_KEY }}
+          ANTHROPIC_API_KEY: ""
