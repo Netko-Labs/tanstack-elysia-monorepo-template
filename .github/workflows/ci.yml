@@ -42,29 +42,29 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
+          persist-credentials: false
 
-      - uses: anthropics/claude-code-action@v1
+      - uses: anomalyco/opencode/github@latest
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          claude_args: "--model anthropic/claude-sonnet-4.6 --max-turns 15"
+          model: ${{ secrets.OPENCODE_MODEL }}
+          use_github_token: true
           prompt: |
             Review the pull request diff. Leave inline review comments for specific
             issues and post a concise summary. Focus on:
             - Adherence to the conventions in CLAUDE.md and docs/conventions.md
               (module layout, lib/ + shared/ model, no inline types, UPPER_SNAKE
               constants, ≤300-line files, ≤3 hooks per component file)
-            - Architecture flow: domain → repository → service → trpc → ui
+            - Architecture flow: domain → repository → service → api → ui
             - drizzle-zod patterns (createInsertSchema/createUpdateSchema/createSelectSchema)
+            - Elysia routes reuse drizzle-zod schemas as validators; Eden Treaty on the client
             - Biome style (single quotes, 2-space indent, 100-char width)
             - Type safety (no `any`, no ts-ignore/ts-expect-error) and security concerns
             - Unnecessary new dependencies
 
             Report every finding with a confidence level and severity; a maintainer
-            will decide what to act on. Approve with `gh pr review --approve` if it
-            looks good, or request changes for significant issues.
-        env:
-          # Route Claude Code through Vercel AI Gateway (native Anthropic Messages API).
-          # ANTHROPIC_API_KEY must be empty so the CLI uses ANTHROPIC_AUTH_TOKEN.
-          ANTHROPIC_BASE_URL: https://ai-gateway.vercel.sh
-          ANTHROPIC_AUTH_TOKEN: ${{ secrets.AI_GATEWAY_API_KEY }}
-          ANTHROPIC_API_KEY: ""
+            will decide what to act on. Request changes for significant issues, or
+            approve with `gh pr review --approve` if it looks good. Note: the default
+            GITHUB_TOKEN cannot approve PRs, so prefer a summary + request-changes.

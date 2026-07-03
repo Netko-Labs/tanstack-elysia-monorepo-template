@@ -1,0 +1,46 @@
+name: OpenCode Assistant
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  opencode:
+    if: |
+      contains(github.event.comment.body, '/oc') ||
+      contains(github.event.comment.body, '/opencode')
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - uses: anomalyco/opencode/github@latest
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: ${{ secrets.OPENCODE_MODEL }}
+          use_github_token: true
+          prompt: |
+            You are an interactive assistant on GitHub PRs and issues.
+            REPO: ${{ github.repository }}
+            PR/ISSUE NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+
+            IMPORTANT: Always respond to the user. After completing the requested task,
+            post a summary comment using `gh pr comment` or `gh issue comment`.
+
+            When asked to update or generate a PR description:
+            1. Read the PR diff with `gh pr diff ${{ github.event.issue.number || github.event.pull_request.number }}`
+            2. Read the template from .github/pull_request_template.md
+            3. Fill in the template based on the actual changes
+            4. Update the PR body with `gh pr edit ${{ github.event.issue.number || github.event.pull_request.number }} --body "..."`
+            5. Comment confirming what you did
