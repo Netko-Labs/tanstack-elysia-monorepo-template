@@ -4,6 +4,7 @@ import { db } from '@temp-repo/studio-repository'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { jwt, lastLoginMethod, magicLink } from 'better-auth/plugins'
+import { sendMagicLinkEmail } from '../email'
 
 export const auth = betterAuth({
   appName: 'Studio',
@@ -38,7 +39,7 @@ export const auth = betterAuth({
     magicLink({
       expiresIn: 60 * 10, // 10 minutes
       sendMagicLink: async ({ email, url }) => {
-        console.log(`\n✨ Magic Link for ${email}:\n${url}\n`)
+        await sendMagicLinkEmail({ email, url })
       },
     }),
     lastLoginMethod(),

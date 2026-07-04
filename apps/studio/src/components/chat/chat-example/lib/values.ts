@@ -1,5 +1,6 @@
 export const CHAT_PAGE_TITLE = 'Chat Example'
-export const CHAT_PAGE_DESCRIPTION = 'Real-time global chat using Elysia SSE streams'
+export const CHAT_PAGE_DESCRIPTION =
+  'Real-time chat + presence over a WebSocket to the realtime server'
 
 export const CONNECTION_CONNECTED = 'Connected'
 export const CONNECTION_CONNECTING = 'Connecting...'

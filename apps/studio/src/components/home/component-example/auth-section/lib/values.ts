@@ -13,5 +13,6 @@ export const AUTH_EMAIL_PLACEHOLDER = 'you@example.com'
 export const AUTH_SEND_LINK = 'Send Magic Link'
 export const AUTH_SENDING = 'Sending...'
 export const AUTH_MAGIC_LINK_ERROR = 'Failed to send magic link'
-export const AUTH_MAGIC_LINK_SUCCESS = 'Magic link sent! Check your console (dev mode).'
+export const AUTH_MAGIC_LINK_SUCCESS =
+  'Magic link sent! Check your email (in dev it is logged to the server console).'
 export const AUTH_DEV_HINT = 'In development, the magic link URL is logged to the server console.'

@@ -234,6 +234,7 @@
     "packages/studio/service": {
       "name": "@temp-repo/studio-service",
       "dependencies": {
+        "@temp-repo/logger": "workspace:*",
         "@temp-repo/studio-config": "workspace:*",
         "@temp-repo/studio-domain": "workspace:*",
         "@temp-repo/studio-repository": "workspace:*",
