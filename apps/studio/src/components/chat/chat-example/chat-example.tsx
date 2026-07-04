@@ -1,6 +1,7 @@
 import { ConnectionStatus } from './connection-status/connection-status'
 import { ImplementationInfo } from './implementation-info/implementation-info'
 import { CHAT_PAGE_DESCRIPTION, CHAT_PAGE_TITLE, useChatExample } from './lib'
+import { MembersList } from './members-list/members-list'
 import { MessageList } from './message-list/message-list'
 import { GuestNotice, SendMessageForm } from './send-message-form/send-message-form'
 
@@ -8,6 +9,7 @@ export function ChatExample() {
   const {
     currentUser,
     messages,
+    members,
     isLoading,
     connectionStatus,
     messagesEndRef,
@@ -23,6 +25,8 @@ export function ChatExample() {
       </div>
 
       <ConnectionStatus status={connectionStatus} userName={currentUser?.name} />
+
+      <MembersList members={members} />
 
       <MessageList
         messages={messages}

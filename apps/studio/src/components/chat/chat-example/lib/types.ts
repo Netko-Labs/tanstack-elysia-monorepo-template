@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@temp-repo/studio-domain'
+import type { ChatMessage, Member } from '@temp-repo/realtime-domain'
 import type { FormEvent, RefObject } from 'react'
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected'
@@ -37,4 +37,8 @@ export interface ChatMessageItemProps {
 export interface SendMessageFormProps {
   onSubmit: (e: FormEvent, content: string) => void
   isPending: boolean
+}
+
+export interface MembersListProps {
+  members: Member[]
 }

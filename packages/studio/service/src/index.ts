@@ -1,5 +1,2 @@
 export * from './auth'
-export * from './chat'
-export * from './mutations'
-export * from './queries'
 export * from './shared'

@@ -42,6 +42,8 @@
         "@tanstack/react-router-devtools": "^1.132.0",
         "@tanstack/react-start": "^1.132.0",
         "@temp-repo/logger": "workspace:*",
+        "@temp-repo/realtime-api": "workspace:*",
+        "@temp-repo/realtime-domain": "workspace:*",
         "@temp-repo/studio-api": "workspace:*",
         "@temp-repo/studio-domain": "workspace:*",
         "@temp-repo/studio-repository": "workspace:*",
