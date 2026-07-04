@@ -17,15 +17,15 @@ they describe this repo's specific topology, scaffolding, and commands.
 
 - Runtime and package manager: `bun@1.2.23`
 - Monorepo tooling: Turborepo
-- Web app: `apps/studio` using TanStack Start, React 19, Tailwind, Base UI, Tabler Icons, Elysia, and Eden Treaty
-- Studio domain package: `packages/studio/domain`
-- Studio repository package: `packages/studio/repository`
-- Studio service package: `packages/studio/service`
-- Studio API package (Elysia): `packages/studio/api`
-- Shared tooling and UI packages live under `packages/shared/*` (`cli`, `logger`, `ui`, `typescript-config`)
-- Environment and config for the studio stack live in `packages/configs/studio-config`
+- Two apps (openhotel-shaped):
+  - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). The frontend + identity provider.
+  - `apps/realtime` — a **headless** Bun/Elysia server (own port, `:3001`) that owns all transactional operations (todos, chat over HTTP) **and** a WebSocket room (presence + live chat). Verifies studio JWTs via JWKS — no shared secret.
+- Studio packages: `packages/studio/{domain,repository,service,api}` (auth only) + `packages/configs/studio-config`.
+- Realtime packages: `packages/realtime/{domain,repository,service,api}` + `packages/configs/realtime-config`.
+- Two databases: studio (auth tables) and realtime (business/realtime data).
+- Shared tooling and UI live under `packages/shared/*` (`cli`, `logger`, `ui`, `typescript-config`).
 
-When extending this template with additional apps (e.g. mobile, realtime), colocate app-specific packages under `packages/{app-name}/*` and config under `packages/configs/{app-name}-config`. Keep cross-cutting concerns in `packages/shared/*`.
+When extending the template with additional apps, colocate app-specific packages under `packages/{app-name}/*` and config under `packages/configs/{app-name}-config`. Keep cross-cutting concerns in `packages/shared/*`.
 
 ## Backend Layering
 
@@ -33,21 +33,23 @@ The generic layering pattern and per-layer folder structure (`domain → reposit
 ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend Layering** in
 `@docs/conventions.md`. This section records only the concrete studio-stack specifics:
 
-- Keep app-specific WebSocket or realtime-only concerns out of `packages/studio/*` unless they belong to the studio stack.
-- Put database schema definitions and `drizzle-zod` entities in `packages/studio/domain`; use `createInsertSchema()`, `createUpdateSchema()`, and `createSelectSchema()`.
-- Keep direct database access in `packages/studio/repository`, business logic in `packages/studio/service`, and the Elysia app / route composition in `packages/studio/api`. Elysia validators accept the `drizzle-zod` schemas directly (Standard Schema).
-- The Elysia app is mounted in the TanStack Start server via `app.handle()` at `/api`; the frontend calls it through the Eden Treaty client (`src/integrations/eden`). Real-time uses Elysia async-generator SSE routes consumed as Eden async iterables (WebSocket is not used — it can't upgrade through the mounted `.handle()`).
+- `apps/studio` backend is **auth only**: better-auth is mounted at `/api/auth` (magic link + `jwt`/`jwks`). All transactional data + logic lives on the realtime server. Put `drizzle-zod` entities in the relevant `domain` package (`createInsertSchema()`/`createUpdateSchema()`/`createSelectSchema()`).
+- `apps/realtime` is a **standalone** Elysia server started with `.listen()` (NOT `.handle()`), so native WebSocket upgrades work. `packages/realtime/{domain,repository,service,api}` hold the tables/entities + WS event schemas, the DB client, business logic + an in-memory `RoomHub` + JWKS `verifyToken`, and the Elysia app (HTTP routes + the `.ws()` room). Elysia validators accept `drizzle-zod`/zod schemas directly (Standard Schema).
+- **Cross-service auth**: studio mints a JWT (`GET /api/auth/token`); the realtime server verifies it against studio's JWKS (`/api/auth/jwks`) with `jose` — no shared secret. The frontend attaches a Bearer JWT to realtime HTTP calls and passes `?token=` on the WebSocket.
+- **tsgo caveat**: the realtime WS *app entry* (`apps/realtime`) type-checks with `tsc`, not tsgo — the TS7 preview can't instantiate Elysia's `.ws()` app across a package boundary. The realtime **api** package stays HTTP-only so its exported `App` type (used by Eden on the frontend) stays tsgo-safe; the frontend consumes the WS via a native socket typed with `packages/realtime/domain` event schemas.
 
 ## Scaffolding
 
-- **`bun run gen:app`** — Turbo generator in `turbo/generators/config.ts`. Creates the app under `apps/{name}` plus layered packages (`domain`, `repository`, `service`, `api`) and `packages/configs/{name}-config`.
-- **TanStack Start template** — `turbo/generators/templates/app-tanstack/`. Aligns with `apps/studio`: `~/*` path alias, `components/core/root/` shell, Eden Treaty client under `src/integrations/eden/`, TanStack Query provider, `@temp-repo/ui`, Nitro + rolldown-vite.
+- **`bun run gen:app`** — Turbo generator in `turbo/generators/config.ts`. Prompts for a name and a **type** (`studio` | `realtime`), then creates the app under `apps/{name}` plus layered packages (`domain`, `repository`, `service`, `api`) and `packages/configs/{name}-config`.
+- **Studio template** — `turbo/generators/templates/app-tanstack/`. TanStack Start + Elysia HTTP API: `~/*` path alias, `components/core/root/` shell, Eden Treaty client under `src/integrations/eden/`, TanStack Query provider, `@temp-repo/ui`, Nitro + rolldown-vite.
+- **Realtime template** — `turbo/generators/templates/app-realtime/`. A headless Elysia WebSocket server (presence + chat room) with JWKS auth; mirrors `apps/realtime`.
 - **Reference app** — treat `apps/studio` as the living example when extending a generated app. Root `CLAUDE.md` applies to all apps unless an app adds a local override.
 - **`bun run gen:lib`** — shared library under `packages/shared/{name}`.
 
 ## Commands
 
-- Web development: `bun run repo dev --app studio` (localhost:3000)
+- Studio (frontend + auth) development: `bun run repo dev --app studio` (localhost:3000)
+- Realtime (WebSocket server) development: `bun run repo dev --app realtime` (localhost:3001)
 - Web production build: `bun run repo build --app studio`
 - Web preview: `bun run repo serve --app studio`
 - Docker up/down: `bun run repo docker:up --app studio` / `bun run repo docker:down --app studio`
