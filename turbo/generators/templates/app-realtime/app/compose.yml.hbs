@@ -1,0 +1,15 @@
+services:
+  db-{{ name }}:
+    image: postgres:17
+    profiles: [{{ name }}]
+    ports:
+      - "{{{ dockerPort name "DB_PORT" "5434" "5432" }}}"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: {{ name }}
+    volumes:
+      - {{ name }}_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  {{ name }}_postgres_data:

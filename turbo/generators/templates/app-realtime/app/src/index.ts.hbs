@@ -1,0 +1,10 @@
+import { createLogger } from '@temp-repo/logger'
+import { app } from '@temp-repo/{{ name }}-api'
+import { {{ camelCase name }}EnvConfig } from '@temp-repo/{{ name }}-config'
+import { roomRoutes } from './room'
+
+const logger = createLogger('{{ name }}')
+
+const port = {{ camelCase name }}EnvConfig.app.port
+app.use(roomRoutes).listen(port)
+logger.info(`🚀 {{ name }} server listening on http://localhost:${port}`)

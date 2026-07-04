@@ -1,0 +1,50 @@
+import { ClientMessageSchema } from '@temp-repo/{{ name }}-domain'
+import { createChatMessage, getChatMessages, hub, verifyToken } from '@temp-repo/{{ name }}-service'
+import { Elysia } from 'elysia'
+
+/**
+ * WebSocket room: presence + live chat. Auth rides the `?token=` query param
+ * (browsers can't set WS headers); messages are validated manually with zod.
+ *   open    -> auth-gate, send history, join + presence snapshot, broadcast join
+ *   message -> persist chat + broadcast, or update presence status
+ *   close   -> leave + broadcast
+ */
+export const roomRoutes = new Elysia().ws('/room/:id', {
+  async open(ws) {
+    const roomId = ws.data.params.id
+    const query = ws.data.query as Record<string, string | undefined>
+    const user = query.token ? await verifyToken(query.token) : null
+    if (!user) {
+      ws.close(1008, 'Unauthorized')
+      return
+    }
+    const member = { userId: user.id, name: user.name, status: 'active' as const }
+    ws.send({ type: 'history', messages: await getChatMessages() })
+    const members = hub.join(roomId, ws, member)
+    ws.send({ type: 'presence', members })
+    hub.broadcast(roomId, { type: 'join', member }, ws.id)
+  },
+  async message(ws, raw) {
+    const parsed = ClientMessageSchema.safeParse(raw)
+    if (!parsed.success) return
+    const message = parsed.data
+    const roomId = ws.data.params.id
+    const member = hub.getMember(roomId, ws.id)
+    if (!member) return
+    if (message.type === 'chat') {
+      const saved = await createChatMessage({
+        content: message.content,
+        authorId: member.userId,
+        authorName: member.name,
+      })
+      if (saved) hub.broadcast(roomId, { type: 'chat', message: saved })
+    } else {
+      hub.setStatus(roomId, ws.id, message.status)
+    }
+  },
+  close(ws) {
+    const roomId = ws.data.params.id
+    const member = hub.leave(roomId, ws.id)
+    if (member) hub.broadcast(roomId, { type: 'leave', userId: member.userId })
+  },
+})

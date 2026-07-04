@@ -1,0 +1,22 @@
+{
+  "name": "@temp-repo/{{ name }}-api",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "@temp-repo/{{ name }}-config": "workspace:*",
+    "@temp-repo/{{ name }}-domain": "workspace:*",
+    "@temp-repo/{{ name }}-service": "workspace:*",
+    "@temp-repo/logger": "workspace:*",
+    "@temp-repo/typescript-config": "workspace:*",
+    "@elysiajs/cors": "^1.4.0",
+    "elysia": "^1.4.29",
+    "zod": "^4.1.13"
+  }
+}

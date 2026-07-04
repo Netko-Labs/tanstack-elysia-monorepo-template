@@ -70,12 +70,28 @@ export default function generator(plop: PlopTypes.NodePlopAPI): void {
           return true
         },
       },
+      {
+        type: 'list',
+        name: 'type',
+        message: 'What type of app do you want to create?',
+        choices: [
+          {
+            name: 'Studio — TanStack Start frontend + Elysia (Eden Treaty) HTTP API',
+            value: 'studio',
+          },
+          {
+            name: 'Realtime — headless Elysia WebSocket server (presence + chat)',
+            value: 'realtime',
+          },
+        ],
+      },
     ],
-    actions: () => {
+    actions: (answers) => {
+      const appType = (answers?.type as 'studio' | 'realtime') ?? 'studio'
       const actions: PlopTypes.ActionType[] = []
 
-      // Only the TanStack Start (Elysia + Eden Treaty) app template is available.
-      const templateFolder = 'app-tanstack'
+      // Studio => TanStack Start app; Realtime => headless Elysia WebSocket server.
+      const templateFolder = appType === 'realtime' ? 'app-realtime' : 'app-tanstack'
 
       // ─────────────────────────────────────────────────────────────────────────
       // 1. Create the main app in apps/{appName}/
