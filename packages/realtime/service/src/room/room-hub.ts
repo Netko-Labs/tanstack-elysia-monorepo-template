@@ -1,0 +1,69 @@
+import type { Member, ServerEvent } from '@temp-repo/realtime-domain'
+
+/** Minimal shape the hub needs from a live socket (framework-agnostic). */
+export interface RoomConnection {
+  id: string
+  send(event: ServerEvent): unknown
+}
+
+interface Conn {
+  ws: RoomConnection
+  member: Member
+}
+
+/**
+ * In-memory room membership + fan-out. Presence is ephemeral (lost on restart);
+ * chat is persisted separately via the repository.
+ */
+class RoomHub {
+  private rooms = new Map<string, Map<string, Conn>>()
+
+  private roomOf(roomId: string): Map<string, Conn> {
+    let room = this.rooms.get(roomId)
+    if (!room) {
+      room = new Map()
+      this.rooms.set(roomId, room)
+    }
+    return room
+  }
+
+  join(roomId: string, ws: RoomConnection, member: Member): Member[] {
+    this.roomOf(roomId).set(ws.id, { ws, member })
+    return this.members(roomId)
+  }
+
+  /** Remove a connection; returns the member that left (for a leave broadcast). */
+  leave(roomId: string, wsId: string): Member | undefined {
+    const room = this.rooms.get(roomId)
+    const member = room?.get(wsId)?.member
+    room?.delete(wsId)
+    if (room && room.size === 0) this.rooms.delete(roomId)
+    return member
+  }
+
+  getMember(roomId: string, wsId: string): Member | undefined {
+    return this.rooms.get(roomId)?.get(wsId)?.member
+  }
+
+  members(roomId: string): Member[] {
+    const room = this.rooms.get(roomId)
+    return room ? [...room.values()].map((c) => c.member) : []
+  }
+
+  broadcast(roomId: string, event: ServerEvent, exceptWsId?: string): void {
+    const room = this.rooms.get(roomId)
+    if (!room) return
+    for (const [id, conn] of room) {
+      if (id !== exceptWsId) conn.ws.send(event)
+    }
+  }
+
+  setStatus(roomId: string, wsId: string, status: Member['status']): void {
+    const conn = this.rooms.get(roomId)?.get(wsId)
+    if (!conn) return
+    conn.member.status = status
+    this.broadcast(roomId, { type: 'presence', members: this.members(roomId) })
+  }
+}
+
+export const hub = new RoomHub()

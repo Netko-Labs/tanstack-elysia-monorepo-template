@@ -1,5 +1,5 @@
 import * as path from 'node:path'
-import { getAppDir, getAvailableApps, parseAppArg, validateApp } from '../utils/apps'
+import { getAppDir, getAppKind, getAvailableApps, parseAppArg, validateApp } from '../utils/apps'
 import { loadEnvFile, run } from '../utils/shell'
 
 /**
@@ -9,7 +9,8 @@ import { loadEnvFile, run } from '../utils/shell'
  */
 
 /**
- * Build an app for production
+ * Build an app for production. Vite apps run `vite build`; headless server apps
+ * bundle their entry with `bun build`.
  */
 export async function build(args: string[]) {
   const appName = parseAppArg(args)
@@ -29,10 +30,16 @@ export async function build(args: string[]) {
   const appDir = getAppDir(appName)
   const envFile = path.join(appDir, '.env')
   const appEnv = loadEnvFile(envFile)
+  const kind = getAppKind(appName)
 
   console.log(`📦 Building ${appName} for production...`)
 
-  await run(['bun', '--bun', 'vite', 'build'], {
+  const command =
+    kind === 'vite'
+      ? ['bun', '--bun', 'vite', 'build']
+      : ['bun', 'build', 'src/index.ts', '--outdir', 'dist', '--target', 'bun']
+
+  await run(command, {
     cwd: appDir,
     env: appEnv,
   })

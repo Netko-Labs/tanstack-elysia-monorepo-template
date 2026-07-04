@@ -1,0 +1,29 @@
+{
+  "name": "realtime-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "dev": "bun run repo dev --app realtime",
+    "serve": "bun run repo serve --app realtime",
+    "build": "bun run repo build --app realtime",
+    "start": "NODE_ENV=production bun run src/index.ts",
+    "docker:up": "bun run repo docker:up --app realtime",
+    "docker:down": "bun run repo docker:down --app realtime",
+    "db:migrate": "bun run repo db:migrate --app realtime",
+    "db:generate": "bun run repo db:generate --app realtime",
+    "db:push": "bun run repo db:push --app realtime"
+  },
+  "dependencies": {
+    "@temp-repo/logger": "workspace:*",
+    "@temp-repo/realtime-api": "workspace:*",
+    "@temp-repo/realtime-config": "workspace:*",
+    "@temp-repo/realtime-domain": "workspace:*",
+    "@temp-repo/realtime-service": "workspace:*",
+    "elysia": "^1.4.29"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.4",
+    "typescript": "^5.9.2"
+  }
+}

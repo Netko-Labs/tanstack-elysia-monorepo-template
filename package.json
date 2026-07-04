@@ -32,6 +32,7 @@
     "packages/shared/*",
     "packages/clients/*",
     "packages/configs/*",
-    "packages/studio/*"
+    "packages/studio/*",
+    "packages/realtime/*"
   ]
 }

@@ -64,3 +64,11 @@ export function getAppPackageDir(appName: string): string {
 export function getRepositoryDir(appName: string): string {
   return path.join(getAppPackageDir(appName), 'repository')
 }
+
+/**
+ * Detect an app's kind: a Vite/TanStack frontend, or a headless Bun server
+ * (e.g. the realtime WebSocket server). Presence of a vite.config.ts => 'vite'.
+ */
+export function getAppKind(appName: string): 'vite' | 'server' {
+  return fs.existsSync(path.join(getAppDir(appName), 'vite.config.ts')) ? 'vite' : 'server'
+}
