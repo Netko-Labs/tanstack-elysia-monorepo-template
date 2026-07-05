@@ -18,6 +18,7 @@ export const app = new Elysia({ prefix: '/api' })
       'API error',
     )
   })
+  // ٩(◕‿◕)۶ health check — is the api alive?
   .get('/health', () => ({ status: 'ok' }))
 
 export type App = typeof app

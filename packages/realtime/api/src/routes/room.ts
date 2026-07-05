@@ -11,6 +11,7 @@ import { Elysia } from 'elysia'
 export const roomRoutes = new Elysia().ws('/room/:id', {
   query: RoomConnectionQuerySchema,
   body: ClientMessageSchema,
+  // (｡•̀ᴗ-)✧ someone slides in — auth, send history, announce presence
   async open(ws) {
     const roomId = ws.params.id
     const user = await verifyToken(ws.query.token)
@@ -24,6 +25,7 @@ export const roomRoutes = new Elysia().ws('/room/:id', {
     ws.send(JSON.stringify({ type: 'presence', members }))
     hub.broadcast(roomId, { type: 'join', member }, ws.query.cid)
   },
+  // (◕‿◕)/ a message lands — persist chat or update presence
   async message(ws, message) {
     const roomId = ws.params.id
     const member = hub.getMember(roomId, ws.query.cid)
@@ -39,6 +41,7 @@ export const roomRoutes = new Elysia().ws('/room/:id', {
       hub.setStatus(roomId, ws.query.cid, message.status)
     }
   },
+  // (｡•́︿•̀｡) someone leaves — wave goodbye to the room
   close(ws) {
     const roomId = ws.params.id
     const member = hub.leave(roomId, ws.query.cid)

@@ -13,7 +13,9 @@ export const app = new Elysia({ prefix: '/api' })
   .error(({ path, error }) => {
     logger.error({ path, err: error instanceof Error ? error.message : String(error) }, 'API error')
   })
+  // ٩(◕‿◕)۶ health check — is studio awake?
   .get('/health', () => ({ status: 'ok' }))
+  // (｡•̀ᴗ-)✧ same-origin session check
   .use(sessionRoutes)
 
 export type App = typeof app

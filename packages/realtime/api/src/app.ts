@@ -26,6 +26,7 @@ export const app = new Elysia()
       set.headers['access-control-allow-headers'] = 'content-type, authorization'
     }
   })
+  // (づ｡◕‿‿◕｡)づ CORS preflight — wave the browser through
   .options('/*', ({ set }) => {
     set.status = 204
     return ''
@@ -36,9 +37,13 @@ export const app = new Elysia()
       'realtime error',
     )
   })
+  // ٩(◕‿◕)۶ health check — is realtime alive?
   .get('/health', () => ({ status: 'ok' }))
+  // (｡◕‿◕｡) /todos — CRUD over HTTP
   .use(todosRoutes)
+  // (◍•ᴗ•◍) /chat — history over HTTP
   .use(chatRoutes)
+  // (づ￣ ³￣)づ /room/:id — presence + live chat over WS
   .use(roomRoutes)
 
 export type App = typeof app

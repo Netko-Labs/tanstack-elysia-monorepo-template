@@ -2,6 +2,6 @@ import { getChatMessages } from '@temp-repo/realtime-service'
 import { Elysia } from 'elysia'
 
 // Chat history over HTTP; live sending happens over the WS room route.
-export const chatRoutes = new Elysia({ name: 'chat', prefix: '/chat' }).get('/messages', () =>
-  getChatMessages(),
-)
+export const chatRoutes = new Elysia({ name: 'chat', prefix: '/chat' })
+  // (◍•ᴗ•◍) fetch the chat scrollback
+  .get('/messages', () => getChatMessages())

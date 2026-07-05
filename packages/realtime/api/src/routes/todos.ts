@@ -12,9 +12,13 @@ const TodoPatchSchema = z.object({
 
 export const todosRoutes = new Elysia({ name: 'todos', prefix: '/todos' })
   .use(authPlugin)
+  // (｡◕‿◕｡) list every todo
   .get('/', () => getTodos())
+  // (・o・)ゞ peek a single todo by id
   .get('/:todoId', ({ params }) => getTodo(params.todoId))
+  // ✨(っ◔◡◔)っ create a brand-new todo
   .post('/', { auth: true, body: TodoInsertSchema }, ({ body }) => createTodo(body))
+  // (๑˃ᴗ˂)ﻭ tweak an existing todo
   .patch(
     '/:todoId',
     {
@@ -23,4 +27,5 @@ export const todosRoutes = new Elysia({ name: 'todos', prefix: '/todos' })
     },
     ({ params, body }) => updateTodo(params.todoId, body),
   )
+  // (ノ﹏ヽ) poof — delete a todo
   .delete('/:todoId', { auth: true }, ({ params }) => deleteTodo(params.todoId))
