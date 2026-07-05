@@ -1,6 +1,6 @@
-import { ClientMessageSchema } from '@temp-repo/realtime-domain'
+import { ClientMessageSchema, RoomConnectionQuerySchema } from '@temp-repo/realtime-domain'
 import { createChatMessage, getChatMessages, hub, verifyToken } from '@temp-repo/realtime-service'
-import { Elysia, t } from 'elysia'
+import { Elysia } from 'elysia'
 
 /**
  * WebSocket room: presence + live chat. Auth rides `?token=` and each connection
@@ -9,7 +9,7 @@ import { Elysia, t } from 'elysia'
  * the reliable per-connection key. `ws.send` takes a string, so events are JSON.
  */
 export const roomRoutes = new Elysia().ws('/room/:id', {
-  query: t.Object({ token: t.String(), cid: t.String() }),
+  query: RoomConnectionQuerySchema,
   body: ClientMessageSchema,
   async open(ws) {
     const roomId = ws.params.id

@@ -138,7 +138,8 @@ layer is exempt. Layers differ only in their layer-specific top-level folders.
 ```
 domain/      db/         table definitions
              entities/   db entities (db-backed entity schemas)
-             schemas/    interfaces / types
+             schemas/    zod validation schemas + interfaces/types, per entity
+                         (schemas/{entity}/{name}-schema.ts)
              values/     constants, enums, etc.
              factory/    factories
              lib/        internal helpers/types          # universal
@@ -166,7 +167,7 @@ service/     queries/{entity}/{op}.ts + index.ts     # read operations
              index.ts
 ```
 
-**`api`** — the Elysia application (HTTP + SSE):
+**`api`** — the Elysia application (HTTP + WebSocket):
 
 ```
 api/         routes/{entity}.ts   Elysia route modules (.use()-d into the app)
@@ -180,7 +181,14 @@ Architecture rules:
 
 - Keep the flow aligned as `domain → repository → service → api → ui`.
 - Direct database access lives only in `repository`; business logic in `service`; the Elysia app and
-  route composition in `api`. Elysia validators accept `drizzle-zod` schemas directly (Standard Schema).
+  route composition in `api`.
+- **Validation schemas come from `domain`, as zod — never inline, never TypeBox `t.*`.** For every
+  HTTP/Elysia validator (`body`/`query`/`params`/`response`, including `.ws()` schemas), reuse a
+  `drizzle-zod` entity from `domain/entities/`, or define the shape as a **zod** schema in
+  `domain/schemas/{entity}/{name}-schema.ts` (e.g. `schemas/user/re-enable-user-schema.ts`) and import
+  it — Elysia accepts zod directly via Standard Schema. This keeps request/response shapes owned by the
+  domain and reusable. *(HTTP/Elysia servers only — tRPC routers keep their zod `input`/`output`
+  inline.)*
 - In `service`, prefer the folder-per-entity structure under `queries/*` and `mutations/*`.
 - When extending the API, compose smaller per-entity Elysia route modules with `.use()` instead of growing one file.
 

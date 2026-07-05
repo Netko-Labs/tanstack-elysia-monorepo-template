@@ -17,7 +17,7 @@ they describe this repo's specific topology, scaffolding, and commands.
 
 - Runtime and package manager: `bun@1.2.23`
 - Monorepo tooling: Turborepo
-- Two apps (openhotel-shaped):
+- Two apps:
   - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). The frontend + identity provider.
   - `apps/realtime` — a **headless** Bun/Elysia server (own port, `:3001`) that owns all transactional operations (todos, chat over HTTP) **and** a WebSocket room (presence + live chat). Verifies studio JWTs via JWKS — no shared secret.
 - Studio packages: `packages/studio/{domain,repository,service,api}` (auth only) + `packages/configs/studio-config`.

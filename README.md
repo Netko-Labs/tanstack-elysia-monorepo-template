@@ -4,7 +4,7 @@ A modern, type-safe full-stack **two-app** template on **Elysia 2** + Bun: a Tan
 
 ## 🚀 Features
 
-- 🏛️ **Two-app architecture** - `studio` (TanStack Start frontend + auth) and `realtime` (headless Elysia WebSocket server), openhotel-shaped
+- 🏛️ **Two-app architecture** - `studio` (TanStack Start frontend + auth) and `realtime` (headless Elysia WebSocket server)
 - 🦊 **Elysia 2 + Eden Treaty** - End-to-end type-safe APIs (Bun-first server, typed client)
 - 🔌 **WebSocket real-time** - presence + live chat room on the standalone realtime server
 - 🔑 **Magic-link auth** - better-auth magic link + a `/sign-in` page (Resend email, console fallback)
