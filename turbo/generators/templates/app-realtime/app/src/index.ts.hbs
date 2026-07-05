@@ -1,10 +1,11 @@
 import { createLogger } from '@temp-repo/logger'
 import { app } from '@temp-repo/{{ name }}-api'
 import { {{ camelCase name }}EnvConfig } from '@temp-repo/{{ name }}-config'
-import { roomRoutes } from './room'
 
 const logger = createLogger('{{ name }}')
 
+// The full app (HTTP routes + the WebSocket room) lives in @temp-repo/{{ name }}-api;
+// the entry just starts the Bun server.
 const port = {{ camelCase name }}EnvConfig.app.port
-app.use(roomRoutes).listen(port)
+app.listen(port)
 logger.info(`🚀 {{ name }} server listening on http://localhost:${port}`)

@@ -2,15 +2,16 @@ import { createLogger } from '@temp-repo/logger'
 import { realtimeEnvConfig } from '@temp-repo/realtime-config'
 import { Elysia } from 'elysia'
 import { chatRoutes } from './routes/chat'
+import { roomRoutes } from './routes/room'
 import { todosRoutes } from './routes/todos'
 
 const logger = createLogger('realtime-api')
 const allowedOrigins = realtimeEnvConfig.app.cors
 
 /**
- * The transactional HTTP surface of the realtime server. `export type App` is
- * what the studio frontend's Eden Treaty client is typed against. The WebSocket
- * room route is composed in `apps/realtime`.
+ * The realtime server's full surface: transactional HTTP routes **and** the
+ * WebSocket room. `export type App` is what the studio frontend's Eden Treaty
+ * client is typed against. The app entry (`apps/realtime`) just `.listen()`s it.
  *
  * CORS is hand-rolled (cross-origin studio -> realtime with Bearer + credentials)
  * because `@elysiajs/cors` has no Elysia 2 build yet.
@@ -38,5 +39,6 @@ export const app = new Elysia()
   .get('/health', () => ({ status: 'ok' }))
   .use(todosRoutes)
   .use(chatRoutes)
+  .use(roomRoutes)
 
 export type App = typeof app

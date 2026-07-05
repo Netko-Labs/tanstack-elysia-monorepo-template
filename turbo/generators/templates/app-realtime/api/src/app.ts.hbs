@@ -2,14 +2,15 @@ import { createLogger } from '@temp-repo/logger'
 import { {{ camelCase name }}EnvConfig } from '@temp-repo/{{ name }}-config'
 import { Elysia } from 'elysia'
 import { chatRoutes } from './routes/chat'
+import { roomRoutes } from './routes/room'
 
 const logger = createLogger('{{ name }}-api')
 const allowedOrigins = {{ camelCase name }}EnvConfig.app.cors
 
 /**
- * The HTTP surface of the {{ name }} realtime server. `export type App` is the
- * type consumed by clients (Eden Treaty). The WebSocket room route is composed
- * in the app entry (apps/{{ name }}) so this exported type stays simple.
+ * The full surface of the {{ name }} realtime server: HTTP routes **and** the
+ * WebSocket room. `export type App` is consumed by clients (Eden Treaty); the
+ * app entry (apps/{{ name }}) just `.listen()`s it.
  *
  * CORS is hand-rolled (cross-origin clients with Bearer + credentials) because
  * `@elysiajs/cors` has no Elysia 2 build yet.
@@ -36,5 +37,6 @@ export const app = new Elysia()
   })
   .get('/health', () => ({ status: 'ok' }))
   .use(chatRoutes)
+  .use(roomRoutes)
 
 export type App = typeof app
