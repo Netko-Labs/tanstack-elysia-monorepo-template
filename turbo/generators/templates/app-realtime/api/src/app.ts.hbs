@@ -1,22 +1,37 @@
-import { cors } from '@elysiajs/cors'
 import { createLogger } from '@temp-repo/logger'
 import { {{ camelCase name }}EnvConfig } from '@temp-repo/{{ name }}-config'
 import { Elysia } from 'elysia'
 import { chatRoutes } from './routes/chat'
 
 const logger = createLogger('{{ name }}-api')
+const allowedOrigins = {{ camelCase name }}EnvConfig.app.cors
 
 /**
  * The HTTP surface of the {{ name }} realtime server. `export type App` is the
  * type consumed by clients (Eden Treaty). The WebSocket room route is composed
  * in the app entry (apps/{{ name }}) so this exported type stays simple.
+ *
+ * CORS is hand-rolled (cross-origin clients with Bearer + credentials) because
+ * `@elysiajs/cors` has no Elysia 2 build yet.
  */
 export const app = new Elysia()
-  .use(cors({ origin: {{ camelCase name }}EnvConfig.app.cors, credentials: true }))
-  .onError(({ code, path, error }) => {
+  .request(({ set, request }) => {
+    const origin = request.headers.get('origin')
+    if (origin && allowedOrigins.includes(origin)) {
+      set.headers['access-control-allow-origin'] = origin
+      set.headers['access-control-allow-credentials'] = 'true'
+      set.headers['access-control-allow-methods'] = 'GET, POST, PATCH, DELETE, OPTIONS'
+      set.headers['access-control-allow-headers'] = 'content-type, authorization'
+    }
+  })
+  .options('/*', ({ set }) => {
+    set.status = 204
+    return ''
+  })
+  .error(({ path, error }) => {
     logger.error(
-      { code, path, err: error instanceof Error ? error.message : String(error) },
-      `{{ name }} error: ${code}`,
+      { path, err: error instanceof Error ? error.message : String(error) },
+      '{{ name }} error',
     )
   })
   .get('/health', () => ({ status: 'ok' }))

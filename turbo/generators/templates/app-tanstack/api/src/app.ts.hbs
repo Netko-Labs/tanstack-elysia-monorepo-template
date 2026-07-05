@@ -12,10 +12,10 @@ const logger = createLogger('api')
  * generator routes stream over SSE (Eden consumes them as async iterables).
  */
 export const app = new Elysia({ prefix: '/api' })
-  .onError(({ code, path, error }) => {
+  .error(({ path, error }) => {
     logger.error(
-      { code, path, err: error instanceof Error ? error.message : String(error) },
-      `API error: ${code}`,
+      { path, err: error instanceof Error ? error.message : String(error) },
+      'API error',
     )
   })
   .get('/health', () => ({ status: 'ok' }))
