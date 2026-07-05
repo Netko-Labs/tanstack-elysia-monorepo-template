@@ -1,17 +1,17 @@
 # TanStack + Elysia Monorepo Template
 
-A modern, type-safe full-stack **two-app** template: a TanStack Start frontend + auth server (`studio`) and a headless Elysia **WebSocket** server (`realtime`), wired with Eden Treaty, Drizzle ORM, TanStack Query, cross-service JWT auth, and Bun.
+A modern, type-safe full-stack **two-app** template on **Elysia 2** + Bun: a TanStack Start frontend + auth server (`studio`) and a headless Elysia **WebSocket** server (`realtime`), wired with Eden Treaty, Drizzle ORM, TanStack Query, and cross-service JWT auth.
 
 ## 🚀 Features
 
 - 🏛️ **Two-app architecture** - `studio` (TanStack Start frontend + auth) and `realtime` (headless Elysia WebSocket server), openhotel-shaped
-- 🦊 **Elysia + Eden Treaty** - End-to-end type-safe APIs (Bun-first server, typed client)
+- 🦊 **Elysia 2 + Eden Treaty** - End-to-end type-safe APIs (Bun-first server, typed client)
 - 🔌 **WebSocket real-time** - presence + live chat room on the standalone realtime server
 - 🔑 **Magic-link auth** - better-auth magic link + a `/sign-in` page (Resend email, console fallback)
 - 🔐 **Cross-service JWT** - studio mints JWTs; realtime verifies via JWKS (no shared secret)
 - 📊 **TanStack Query** + 🗃️ **Drizzle ORM** - typed data fetching + `drizzle-zod` schemas; two databases
 - 📦 **Turborepo** + ⚙️ **Bun** - fast monorepo tooling and runtime
-- 🎯 **TypeScript** - Full type safety across the stack
+- 🎯 **TypeScript** - Full type safety across the stack (the whole repo checks under `tsgo`)
 
 ## 📦 What's Included
 
@@ -28,71 +28,90 @@ A modern, type-safe full-stack **two-app** template: a TanStack Start frontend +
 ```
 .
 ├── apps/
-│   └── studio/                 # TanStack Start application
-│       └── src/
-│           ├── components/     # React components (feature folders + definitions/)
-│           ├── integrations/   # TanStack Query + Eden Treaty setup
-│           │   ├── tanstack-query/
-│           │   └── eden/
-│           └── routes/         # File-based routing (thin Route exports)
+│   ├── studio/                     # TanStack Start frontend + auth (:3000)
+│   │   └── src/
+│   │       ├── components/         # feature modules (lib/, barrels)
+│   │       ├── integrations/
+│   │       │   ├── tanstack-query/
+│   │       │   ├── auth/           # better-auth client (magic link)
+│   │       │   └── realtime/       # Eden HTTP + native WebSocket to :3001
+│   │       └── routes/             # file-based routes (incl. /sign-in)
+│   └── realtime/                   # headless Elysia server (:3001)
+│       └── src/index.ts            # imports the api app, `app.listen()`
 │
 ├── packages/
-│   ├── studio/
-│   │   ├── domain/             # Domain layer
-│   │   │   ├── db/             # Drizzle schemas
-│   │   │   └── entities/       # drizzle-zod generated schemas
-│   │   ├── repository/         # Database layer
-│   │   ├── service/            # Business logic
-│   │   │   ├── queries/        # Query functions (folder per entity)
-│   │   │   └── mutations/      # Mutation functions (folder per entity)
-│   │   └── api/                # Elysia app (HTTP + SSE)
-│   │       ├── routes/         # todos.ts, chat.ts, session.ts
-│   │       ├── setup.ts        # auth macro / shared plugins
-│   │       └── app.ts          # Elysia app + exported App type
-│   └── shared/
-│       └── ui/                 # Shared UI primitives (shadcn-style)
+│   ├── studio/                     # auth only
+│   │   ├── domain/                 # better-auth tables + entities (DB #1)
+│   │   ├── repository/             # studio DB client
+│   │   ├── service/                # auth + email (magic link) + JWT helpers
+│   │   └── api/                    # Elysia app: same-origin session check
+│   ├── realtime/                   # all transactional + realtime logic
+│   │   ├── domain/                 # todo + chat_message tables, WS event schemas (DB #2)
+│   │   ├── repository/             # realtime DB client
+│   │   ├── service/                # queries/mutations + RoomHub + JWKS verifyToken
+│   │   └── api/                    # the whole Elysia app
+│   │       ├── routes/             # todos.ts, chat.ts, room.ts (the .ws() room)
+│   │       ├── setup.ts            # Bearer-JWT auth macro
+│   │       └── app.ts              # composed app + CORS + exported App type
+│   ├── configs/                    # studio-config, realtime-config (env schemas)
+│   └── shared/                     # cli, logger, ui, typescript-config
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- [Bun](https://bun.sh/) (v1.0+)
-- PostgreSQL database
+- [Bun](https://bun.sh/) (v1.2+)
+- Docker (for the two PostgreSQL databases)
 
-### Installation
+### Install + environment
 
 ```bash
-# Install dependencies
 bun install
 
-# Set up environment variables
+# Two apps, two env files
 cp apps/studio/sample.env apps/studio/.env
-cp packages/studio/domain/sample.env packages/studio/domain/.env
-
-# Edit .env files with your database URL and other settings
+cp apps/realtime/sample.env apps/realtime/.env
+# Edit as needed (DB URLs, WEB_BASE_URL, CORS, optional RESEND_API_KEY)
 ```
 
-### Database Setup
+### Databases (two — studio auth, realtime data)
 
 ```bash
-# Generate and apply migrations
-cd packages/studio/repository
-bunx drizzle-kit push
+bun run repo docker:up --app studio      # db-studio  (:5432)
+bun run repo docker:up --app realtime    # db-realtime (:5434)
+
+bun run repo db:migrate --app studio
+bun run repo db:migrate --app realtime
 ```
 
-### Development
+### Run both servers
 
 ```bash
-# Start development server
-bun run repo dev --app studio
-# or: bun run dev
-
-# Server will start at http://localhost:3000
-# Visit http://localhost:3000/todos to see the example
+bun run repo dev --app studio     # http://localhost:3000  (frontend + auth)
+bun run repo dev --app realtime   # http://localhost:3001  (HTTP + WebSocket)
 ```
 
-## 📖 Architecture Patterns
+Sign in at **http://localhost:3000/sign-in** — the magic link is logged to the studio console in dev (or emailed via Resend when `RESEND_API_KEY` is set). Once signed in, the todos list and the live chat room talk to the realtime server.
+
+## 📖 Architecture
+
+### Two apps, two databases, cross-service JWT
+
+- **studio** (`:3000`) — TanStack Start frontend + better-auth (magic link + `jwt`/`jwks`) mounted at `/api/auth`. Owns the **auth** database only.
+- **realtime** (`:3001`) — a **standalone** Elysia server started with `.listen()` (so native WebSocket upgrades work). Owns all transactional operations (todos, chat) over HTTP **and** the presence/live-chat room over WebSocket, plus its own **business** database.
+- **Auth** — studio mints a JWT (`GET /api/auth/token`); realtime verifies it against studio's JWKS (`GET /api/auth/jwks`) with `jose` — **no shared secret**. HTTP calls send `Authorization: Bearer <jwt>`; the WebSocket passes the token via `?token=` (browsers can't set WS headers).
+
+```
+studio (:3000)                          realtime (:3001, headless Bun/Elysia)
+  TanStack Start frontend                 new Elysia().listen(3001)
+  + better-auth at /api/auth                HTTP: /todos, /chat  (Bearer JWT)
+    - /api/auth/token  (mint JWT)           WS:   /room/:id      (?token= + ?cid=)
+    - /api/auth/jwks   (verify keys)         └ verifies studio JWT via jose + JWKS
+  DB #1: auth tables                      DB #2: todo, chat_message (+ in-memory RoomHub)
+```
+
+**Data flow:** auth → studio same-origin `/api/auth`; transactional (todos/chat) → realtime HTTP (Bearer); real-time (presence/chat) → realtime WebSocket.
 
 ### Frontend component organization
 
@@ -125,225 +144,129 @@ Import a module through its barrel (`@/components/todos/todos-example`), never i
 - app-root shells and providers → `components/core/*`
 - cross-app primitives → `packages/shared/*`
 
-**Hierarchy** — shallow feature trees, not flat large files: feature → section → element.
-
-```
-components/todos/
-  todos-example/
-  todo-list/
-    todo-item/
-shared/                         # cross-feature UI within the app
-core/                           # app-wide shells and providers
-```
-
-**Budgets:**
-- `.tsx` and colocated `.ts` files: **≤ 300 lines**
-- Hooks per component file: **≤ 3** (extract `lib/hooks/use-*.ts` when exceeded)
-- Route files: thin `Route` export only; UI lives under `components/`
-
-**Layer boundaries:**
-- UI-only types/constants/values → the module's `lib/` (private to the module)
-- Pure helpers → the module's `lib/utils.ts`, or an app `src/shared/*` logic module when reused across features
-- Entities, schemas, validation → `packages/studio/domain`
+**Budgets:** `.tsx`/colocated `.ts` ≤ **300 lines**; ≤ **3** hooks per component file (extract `lib/hooks/use-*.ts` when exceeded); route files are thin `Route` exports only.
 
 The full, portable rules live in `@docs/conventions.md`.
 
-### Domain Layer (`packages/studio/domain`)
+### Backend layering (`domain → repository → service → api`)
 
-**Database Schema** (`src/db/todos.ts`):
+**Domain** (`packages/realtime/domain`) — Drizzle tables + `drizzle-zod` entities. Identity comes from the JWT, so business tables carry no cross-database FK to the auth `user`:
+
 ```typescript
 export const todoTable = pgTable('todo', {
   id: uuid('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   title: text('title').notNull(),
   description: text('description'),
   completed: boolean('completed').default(false).notNull(),
-  createdBy: text('created_by').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at').$defaultFn(() => new Date()).notNull(),
   updatedAt: timestamp('updated_at').$defaultFn(() => new Date()).$onUpdate(() => new Date()).notNull(),
 })
+
+export const TodoInsertSchema = createInsertSchema(todoTable) // drizzle-zod
+export type Todo = z.infer<typeof createSelectSchema(todoTable)>
 ```
 
-**Entity Schemas** (`src/entities/todos.ts`) - Using `drizzle-zod`:
+**Service** (`packages/realtime/service`) — business logic, folder-per-entity, plus the in-memory `RoomHub` and JWKS `verifyToken`:
+
 ```typescript
-import { createInsertSchema, createSelectSchema, createUpdateSchema } from 'drizzle-zod'
-
-export const TodoInsertSchema = createInsertSchema(todoTable)
-export type TodoInsert = z.infer<typeof TodoInsertSchema>
-
-export const TodoUpdateSchema = createUpdateSchema(todoTable).required({ id: true })
-export type TodoUpdate = z.infer<typeof TodoUpdateSchema>
-
-export const TodoSchema = createSelectSchema(todoTable)
-export type Todo = z.infer<typeof TodoSchema>
+// mutations/todos/create-todo.ts
+export const createTodo = async (data: TodoInsert): Promise<Todo | undefined> =>
+  db.insert(todoTable).values(data).returning().then(([r]) => r)
 ```
 
-### Service Layer (`packages/studio/service`)
+### API layer (`packages/realtime/api`) — Elysia 2
 
-**Queries** (`src/queries/todos/get-todo.ts`):
+**All** routes live here — HTTP **and** the WebSocket room — composed into the single exported `app`; the app entry (`apps/realtime`) just `.listen()`s it:
+
 ```typescript
-export const getTodo = async (
-  todoId: string,
-  ctx?: AuthenticatedContext,
-): Promise<Todo | undefined> => {
-  const where = ctx
-    ? and(eq(todoTable.id, todoId), eq(todoTable.createdBy, ctx.user.id))
-    : eq(todoTable.id, todoId)
-
-  return await db.select().from(todoTable).where(where).then(([result]) => result)
-}
-```
-
-**Mutations** (`src/mutations/todos/create-todo.ts`):
-```typescript
-export const createTodo = async (data: TodoInsert): Promise<Todo | undefined> => {
-  return await db.insert(todoTable).values(data).returning().then(([result]) => result)
-}
-```
-
-### API Layer (`packages/studio/api`) — Elysia
-
-Routes are plain Elysia modules. Validators accept `drizzle-zod` schemas directly (Standard Schema), and async-generator routes stream over SSE.
-
-**Routes** (`src/routes/todos.ts`):
-```typescript
-import { TodoInsertSchema } from '@temp-repo/studio-domain'
-import { createTodo, getTodos, updateTodo } from '@temp-repo/studio-service'
-import { Elysia } from 'elysia'
-
-export const todosRoutes = new Elysia({ name: 'todos', prefix: '/todos' })
-  .get('/', () => getTodos())
-  .post('/', ({ body }) => createTodo(body), { body: TodoInsertSchema })
-  .patch('/:todoId', ({ params, body }) => updateTodo(params.todoId, body), { body: TodoPatchSchema })
-  // SSE stream — Eden consumes this as an async iterable
-  .get('/stream', async function* ({ request }) {
-    yield { type: 'sync', todos: await getTodos(), timestamp: Date.now() }
-    while (!request.signal.aborted) {
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-      yield { type: 'update', todos: await getTodos(), timestamp: Date.now() }
-    }
-  })
-```
-
-**Protected routes** use the reusable auth macro (`src/setup.ts`):
-```typescript
-export const authPlugin = new Elysia({ name: 'auth-macro' }).macro({
-  auth: {
-    async resolve({ request, status }) {
-      const session = await auth.api.getSession({ headers: request.headers })
-      if (!session?.user) return status(401, 'Unauthorized')
-      return { user: session.user, session: session.session }
-    },
-  },
-})
-// then: .use(authPlugin).post('/messages', handler, { auth: true, body: ... })
-```
-
-The app is mounted inside the TanStack Start server via `app.handle(request)` at `/api` (`src/routes/api/$.ts`).
-
-### Frontend Integration (`apps/studio/src/integrations`)
-
-**Eden client** (`eden/client.ts`) — a single typed `treaty<App>()` client; every call returns `{ data, error }`.
-
-**Usage in Components** (Eden wrapped in TanStack Query):
-```typescript
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { eden } from '@/integrations/eden'
-
-function TodosExample() {
-  const queryClient = useQueryClient()
-
-  const { data: todos } = useQuery({
-    queryKey: ['todos'],
-    queryFn: async () => {
-      const { data, error } = await eden.api.todos.get()
-      if (error) throw error
-      return data
-    },
-  })
-
-  const createMutation = useMutation({
-    mutationFn: async (input: { title: string }) => {
-      const { data, error } = await eden.api.todos.post(input)
-      if (error) throw error
-      return data
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
-  })
-
-  // Real-time via the SSE stream (async iterable)
-  useEffect(() => {
-    const controller = new AbortController()
-    ;(async () => {
-      const { data, error } = await eden.api.todos.stream.get({ fetch: { signal: controller.signal } })
-      if (error) return
-      for await (const event of data) {
-        queryClient.setQueryData(['todos'], event.todos)
-      }
-    })()
-    return () => controller.abort()
-  }, [queryClient])
-}
-```
-
-## 🔧 Key Patterns
-
-### 1. drizzle-zod for Schema Generation
-Instead of manually defining Zod schemas, use `drizzle-zod` to automatically generate them from your Drizzle tables:
-- `createInsertSchema()` - For create operations
-- `createUpdateSchema()` - For update operations
-- `createSelectSchema()` - For reading/selecting data
-
-### 2. Folder-per-Entity in Service Layer
-Each entity has its own folder with individual files for each operation:
-```
-service/src/
-├── queries/
-│   └── todos/
-│       ├── get-todo.ts
-│       ├── get-todos.ts
-│       └── index.ts
-└── mutations/
-    └── todos/
-        ├── create-todo.ts
-        ├── update-todo.ts
-        ├── delete-todo.ts
-        └── index.ts
-```
-
-### 3. Composed Elysia Routes
-Per-entity route modules are composed into one app with `.use()`:
-```typescript
-export const app = new Elysia({ prefix: '/api' })
-  .use(sessionRoutes)
-  .use(chatRoutes)
-  .use(todosRoutes)
+export const app = new Elysia()
+  .request(/* hand-rolled CORS: @elysiajs/cors has no Elysia 2 build yet */)
+  .options('/*', ({ set }) => { set.status = 204; return '' })   // preflight
+  .get('/health', () => ({ status: 'ok' }))
+  .use(todosRoutes)   // HTTP
+  .use(chatRoutes)    // HTTP
+  .use(roomRoutes)    // WebSocket .ws('/room/:id')
 
 export type App = typeof app
 ```
 
-### 4. Eden Treaty + SSE
+**HTTP routes** — validators accept `drizzle-zod`/zod schemas directly (Standard Schema); protected routes opt into the Bearer-JWT macro:
 
-- **Queries/mutations**: `eden.api.todos.get()` / `.post(body)` — wrap in TanStack Query
-- **Real-time**: `eden.api.todos.stream.get()` returns an async iterable (Elysia SSE). WebSocket is intentionally avoided — it can't upgrade through the mounted `app.handle()`.
+```typescript
+export const todosRoutes = new Elysia({ name: 'todos', prefix: '/todos' })
+  .use(authPlugin)
+  .get('/', () => getTodos())
+  .post('/', { auth: true, body: TodoInsertSchema }, ({ body }) => createTodo(body))
 
-## 📦 Dependencies
+// setup.ts — Elysia 2 renamed the macro hook `resolve` -> `derive`
+export const authPlugin = new Elysia({ name: 'auth' }).macro({
+  auth: {
+    async derive({ headers, status }) {
+      const user = await verifyToken(headers.authorization?.replace(/^Bearer /, ''))
+      if (!user) return status(401, 'Unauthorized')
+      return { user }
+    },
+  },
+})
+```
 
-Key packages added:
-- `@tanstack/react-query` - Data fetching and caching
-- `elysia` - Bun-first server framework (HTTP + SSE)
-- `@elysiajs/eden` - Eden Treaty end-to-end typed client
-- `drizzle-zod` - Zod schema generation from Drizzle (reused as Elysia validators)
+**WebSocket room** (`routes/room.ts`) — presence + live chat, gated on the same JWT:
+
+```typescript
+export const roomRoutes = new Elysia().ws('/room/:id', {
+  query: t.Object({ token: t.String(), cid: t.String() }), // schema => ws.query is populated
+  body: ClientMessageSchema,
+  async open(ws) {
+    const user = await verifyToken(ws.query.token)
+    if (!user) return ws.close(1008, 'Unauthorized')
+    ws.send(JSON.stringify({ type: 'history', messages: await getChatMessages() }))
+    const members = hub.join(ws.params.id, ws.query.cid, ws, /* member */)
+    ws.send(JSON.stringify({ type: 'presence', members }))
+    hub.broadcast(ws.params.id, { type: 'join', member }, ws.query.cid)
+  },
+  async message(ws, message) { /* persist chat + broadcast, or update presence */ },
+  close(ws) { /* leave + broadcast */ },
+})
+```
+
+### Frontend integration (`apps/studio/src/integrations`)
+
+- **`realtime/`** — an Eden Treaty client (`treaty<RealtimeApp>()`) for the todos/chat HTTP API (a fresh Bearer JWT is attached per request), plus `connectRoom(roomId)` which opens a **native WebSocket** to `ws://…/room/:id?token=…&cid=…`. Room events are typed by `packages/realtime/domain` schemas and `JSON.parse`d.
+- **`auth/`** — the better-auth client (magic link).
+- **`tanstack-query/`** — the Query provider; Eden calls are wrapped in `useQuery`/`useMutation`.
+
+```typescript
+const { data: todos } = useQuery({
+  queryKey: ['todos'],
+  queryFn: async () => {
+    const { data, error } = await realtime.todos.get()   // Eden Treaty, Bearer JWT
+    if (error) throw error
+    return data
+  },
+})
+```
+
+## 🔧 Key Patterns
+
+1. **drizzle-zod for schemas** — `createInsertSchema()` / `createUpdateSchema()` / `createSelectSchema()` generate Zod from Drizzle tables, reused directly as Elysia validators.
+2. **Folder-per-entity service** — `service/src/{queries,mutations}/{entity}/{op}.ts` + `index.ts`.
+3. **Composed Elysia routes** — per-concern route modules merged with `.use()` into one exported `App` type.
+4. **Eden Treaty (HTTP) + native WebSocket (room)** — HTTP transactional calls via `treaty<App>()`; the real-time room via a native socket (the token rides `?token=`, a unique `?cid=` identifies the connection).
+
+## ⚡ Elysia 2 notes
+
+Pinned to `elysia@2.0.0-exp.25` (experimental — expect changes). Because of it, the whole repo (including the `.ws()` app) type-checks under **tsgo** — no `tsc` fallback. Specifics worth knowing:
+
+- `@elysiajs/cors` has no Elysia 2 build → CORS is hand-rolled in `realtime/api/src/app.ts`.
+- A `.ws()` route only populates `ws.query`/the message when a **schema is declared**.
+- `ws.id` is empty and the `ws` object isn't stable across handlers → the client sends a unique **`?cid=`** and `RoomHub` keys on it; `ws.send` takes a **string** (events are JSON).
+- `@elysiajs/eden@1.4` is forward-compatible with Elysia 2 (no 2.x build yet).
+
+Re-pin these when Elysia 2 and its plugins reach a stable release.
 
 ## 🚧 Production Notes
 
-### Replace SSE Polling with Redis Pub/Sub
-For production, replace the polling-based subscription with Redis:
-```typescript
-// Use Redis Pub/Sub or PostgreSQL LISTEN/NOTIFY
-for await (const event of createRedisIterable(channel, signal)) {
-  yield event
-}
-```
+The `RoomHub` is **in-memory** (single instance). To scale the realtime server horizontally, back presence and fan-out with **Redis pub/sub** (or Postgres `LISTEN/NOTIFY`) so broadcasts reach clients across instances. Magic-link email uses Resend when `RESEND_API_KEY` is set (console fallback in dev).
 
 ## 📝 License
 
