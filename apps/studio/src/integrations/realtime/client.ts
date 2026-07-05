@@ -29,12 +29,17 @@ export const realtime = treaty<RealtimeApp>(getRealtimeUrl(), {
   },
 })
 
-/** Open a native WebSocket to a room. Auth rides the `?token=` query param. */
+/**
+ * Open a native WebSocket to a room. Auth rides the `?token=` query param, and
+ * a unique `?cid=` identifies this connection server-side (Elysia 2's `ws.id`
+ * is unreliable, so the client supplies a stable per-connection id).
+ */
 export async function connectRoom(roomId: string): Promise<WebSocket | null> {
   const token = await getRealtimeToken()
   if (!token) return null
   const wsUrl = getRealtimeUrl().replace(/^http/, 'ws')
+  const cid = crypto.randomUUID()
   return new WebSocket(
-    `${wsUrl}/room/${encodeURIComponent(roomId)}?token=${encodeURIComponent(token)}`,
+    `${wsUrl}/room/${encodeURIComponent(roomId)}?token=${encodeURIComponent(token)}&cid=${cid}`,
   )
 }

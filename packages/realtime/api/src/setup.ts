@@ -8,7 +8,7 @@ import { Elysia } from 'elysia'
  */
 export const authPlugin = new Elysia({ name: 'auth' }).macro({
   auth: {
-    async resolve({ headers, status }) {
+    async derive({ headers, status }) {
       const token = headers.authorization?.replace(/^Bearer /, '')
       const user = token ? await verifyToken(token) : null
       if (!user) return status(401, 'Unauthorized')

@@ -8,7 +8,7 @@ import { Elysia } from 'elysia'
  */
 export const authPlugin = new Elysia({ name: 'auth-macro' }).macro({
   auth: {
-    async resolve({ request, status }) {
+    async derive({ request, status }) {
       const authResponse = await auth.api.getSession({ headers: request.headers })
       if (!authResponse?.session || !authResponse?.user) {
         return status(401, 'Unauthorized')

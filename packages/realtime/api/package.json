@@ -15,8 +15,7 @@
     "@temp-repo/realtime-service": "workspace:*",
     "@temp-repo/logger": "workspace:*",
     "@temp-repo/typescript-config": "workspace:*",
-    "@elysiajs/cors": "^1.4.0",
-    "elysia": "^1.4.29",
+    "elysia": "2.0.0-exp.25",
     "zod": "^4.1.13"
   }
 }

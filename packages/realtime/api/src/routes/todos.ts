@@ -14,9 +14,13 @@ export const todosRoutes = new Elysia({ name: 'todos', prefix: '/todos' })
   .use(authPlugin)
   .get('/', () => getTodos())
   .get('/:todoId', ({ params }) => getTodo(params.todoId))
-  .post('/', ({ body }) => createTodo(body), { auth: true, body: TodoInsertSchema })
-  .patch('/:todoId', ({ params, body }) => updateTodo(params.todoId, body), {
-    auth: true,
-    body: TodoPatchSchema,
-  })
-  .delete('/:todoId', ({ params }) => deleteTodo(params.todoId), { auth: true })
+  .post('/', { auth: true, body: TodoInsertSchema }, ({ body }) => createTodo(body))
+  .patch(
+    '/:todoId',
+    {
+      auth: true,
+      body: TodoPatchSchema,
+    },
+    ({ params, body }) => updateTodo(params.todoId, body),
+  )
+  .delete('/:todoId', { auth: true }, ({ params }) => deleteTodo(params.todoId))

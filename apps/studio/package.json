@@ -33,7 +33,7 @@
     "@temp-repo/studio-service": "workspace:*",
     "@temp-repo/ui": "workspace:*",
     "better-auth": "^1.4.17",
-    "elysia": "^1.4.29",
+    "elysia": "2.0.0-exp.25",
     "nitro": "3.0.260429-beta",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

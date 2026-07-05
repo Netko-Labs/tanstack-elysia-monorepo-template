@@ -1,9 +1,8 @@
 import type { Member, ServerEvent } from '@temp-repo/realtime-domain'
 
-/** Minimal shape the hub needs from a live socket (framework-agnostic). */
+/** Minimal shape the hub needs from a live socket. `send` takes a string (JSON). */
 export interface RoomConnection {
-  id: string
-  send(event: ServerEvent): unknown
+  send(data: string): unknown
 }
 
 interface Conn {
@@ -12,7 +11,8 @@ interface Conn {
 }
 
 /**
- * In-memory room membership + fan-out. Presence is ephemeral (lost on restart);
+ * In-memory room membership + fan-out. Connections are keyed by a caller-supplied
+ * id (Elysia 2's `ws.id` is not reliable across handlers). Presence is ephemeral;
  * chat is persisted separately via the repository.
  */
 class RoomHub {
@@ -27,12 +27,11 @@ class RoomHub {
     return room
   }
 
-  join(roomId: string, ws: RoomConnection, member: Member): Member[] {
-    this.roomOf(roomId).set(ws.id, { ws, member })
+  join(roomId: string, wsId: string, ws: RoomConnection, member: Member): Member[] {
+    this.roomOf(roomId).set(wsId, { ws, member })
     return this.members(roomId)
   }
 
-  /** Remove a connection; returns the member that left (for a leave broadcast). */
   leave(roomId: string, wsId: string): Member | undefined {
     const room = this.rooms.get(roomId)
     const member = room?.get(wsId)?.member
@@ -53,8 +52,9 @@ class RoomHub {
   broadcast(roomId: string, event: ServerEvent, exceptWsId?: string): void {
     const room = this.rooms.get(roomId)
     if (!room) return
+    const payload = JSON.stringify(event)
     for (const [id, conn] of room) {
-      if (id !== exceptWsId) conn.ws.send(event)
+      if (id !== exceptWsId) conn.ws.send(payload)
     }
   }
 

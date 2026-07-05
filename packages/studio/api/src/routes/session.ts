@@ -3,4 +3,4 @@ import { authPlugin } from '../setup'
 
 export const sessionRoutes = new Elysia({ name: 'session' })
   .use(authPlugin)
-  .get('/me', ({ user }) => user, { auth: true })
+  .get('/me', { auth: true }, ({ user }) => user)

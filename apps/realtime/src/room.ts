@@ -1,35 +1,32 @@
 import { ClientMessageSchema } from '@temp-repo/realtime-domain'
 import { createChatMessage, getChatMessages, hub, verifyToken } from '@temp-repo/realtime-service'
-import { Elysia } from 'elysia'
+import { Elysia, t } from 'elysia'
 
 /**
- * WebSocket room: presence + live chat. Auth rides the `?token=` query param
- * (browsers can't set WS headers); messages are validated manually with zod.
- *   open    -> auth-gate, send history, join + presence snapshot, broadcast join
- *   message -> persist chat + broadcast, or update presence status
- *   close   -> leave + broadcast
+ * WebSocket room: presence + live chat. Auth rides `?token=` and each connection
+ * carries a unique `?cid=` (the client generates it) — Elysia 2's `ws.id` is
+ * empty and the `ws` object isn't stable across handlers, so `ws.query.cid` is
+ * the reliable per-connection key. `ws.send` takes a string, so events are JSON.
  */
 export const roomRoutes = new Elysia().ws('/room/:id', {
+  query: t.Object({ token: t.String(), cid: t.String() }),
+  body: ClientMessageSchema,
   async open(ws) {
-    const roomId = ws.data.params.id
-    const query = ws.data.query as Record<string, string | undefined>
-    const user = query.token ? await verifyToken(query.token) : null
+    const roomId = ws.params.id
+    const user = await verifyToken(ws.query.token)
     if (!user) {
       ws.close(1008, 'Unauthorized')
       return
     }
     const member = { userId: user.id, name: user.name, status: 'active' as const }
-    ws.send({ type: 'history', messages: await getChatMessages() })
-    const members = hub.join(roomId, ws, member)
-    ws.send({ type: 'presence', members })
-    hub.broadcast(roomId, { type: 'join', member }, ws.id)
+    ws.send(JSON.stringify({ type: 'history', messages: await getChatMessages() }))
+    const members = hub.join(roomId, ws.query.cid, ws, member)
+    ws.send(JSON.stringify({ type: 'presence', members }))
+    hub.broadcast(roomId, { type: 'join', member }, ws.query.cid)
   },
-  async message(ws, raw) {
-    const parsed = ClientMessageSchema.safeParse(raw)
-    if (!parsed.success) return
-    const message = parsed.data
-    const roomId = ws.data.params.id
-    const member = hub.getMember(roomId, ws.id)
+  async message(ws, message) {
+    const roomId = ws.params.id
+    const member = hub.getMember(roomId, ws.query.cid)
     if (!member) return
     if (message.type === 'chat') {
       const saved = await createChatMessage({
@@ -39,12 +36,12 @@ export const roomRoutes = new Elysia().ws('/room/:id', {
       })
       if (saved) hub.broadcast(roomId, { type: 'chat', message: saved })
     } else {
-      hub.setStatus(roomId, ws.id, message.status)
+      hub.setStatus(roomId, ws.query.cid, message.status)
     }
   },
   close(ws) {
-    const roomId = ws.data.params.id
-    const member = hub.leave(roomId, ws.id)
+    const roomId = ws.params.id
+    const member = hub.leave(roomId, ws.query.cid)
     if (member) hub.broadcast(roomId, { type: 'leave', userId: member.userId })
   },
 })

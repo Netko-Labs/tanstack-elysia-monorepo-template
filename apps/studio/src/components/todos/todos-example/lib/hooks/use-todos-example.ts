@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { Todo } from '@temp-repo/realtime-domain'
 import { type FormEvent, useState } from 'react'
 import { realtime } from '@/integrations/realtime'
 
@@ -17,7 +18,8 @@ export function useTodosExample() {
     queryFn: async () => {
       const { data, error } = await realtime.todos.get()
       if (error) throw error
-      return data
+      // eden@1.4 mis-infers Elysia 2 array responses; the runtime value is Todo[].
+      return data as unknown as Todo[]
     },
   })
 

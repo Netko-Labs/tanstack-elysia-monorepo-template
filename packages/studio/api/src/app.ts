@@ -10,11 +10,8 @@ const logger = createLogger('api')
  * data (todos, chat) lives on the realtime server.
  */
 export const app = new Elysia({ prefix: '/api' })
-  .onError(({ code, path, error }) => {
-    logger.error(
-      { code, path, err: error instanceof Error ? error.message : String(error) },
-      `API error: ${code}`,
-    )
+  .error(({ path, error }) => {
+    logger.error({ path, err: error instanceof Error ? error.message : String(error) }, 'API error')
   })
   .get('/health', () => ({ status: 'ok' }))
   .use(sessionRoutes)
