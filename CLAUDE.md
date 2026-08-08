@@ -79,4 +79,6 @@ ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend
 
 - Reference concrete files and commands when summarizing work.
 - Call out any follow-up steps needed when contracts or shared packages change.
-- If asked to commit, follow the **Commit Convention** in `@docs/conventions.md`.
+- Commit freely at logical checkpoints, following the **Commit Convention** in
+  `@docs/conventions.md`. Push or open a PR only when asked; never commit directly to main in
+  multi-branch repos — branch first.

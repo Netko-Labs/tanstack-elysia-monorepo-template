@@ -311,7 +311,9 @@ Keep task files short and current. Do not create them for one-line fixes.
 
 ### Commit convention
 
-If asked to commit, use `<emoji> <type>(<scope>?): <subject>` (commitlint-enforced where adopted).
+Commit freely at logical checkpoints, using `<emoji> <type>(<scope>?): <subject>`
+(commitlint-enforced where adopted). Push or open a PR only when asked. Never commit directly to
+main in multi-branch repos — branch first.
 
 Commit types: `✨ feat`, `🐛 fix`, `📝 docs`, `💄 style`, `♻️ refactor`, `⚡ perf`, `✅ test`,
 `🔧 chore`, `🏗️ build`, `👷 ci`, `🔒 security`.
