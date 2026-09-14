@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -10,16 +10,14 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noUnusedImports": "error",
         "useUniqueElementIds": "off"
       },
       "suspicious": {
         "noArrayIndexKey": "off",
-        "noShadowRestrictedNames": "off",
-        // Tailwind CSS uses custom at-rules (@apply, @theme) that Biome doesn't recognize
-        "noUnknownAtRules": "off"
+        "noShadowRestrictedNames": "off"
       },
       "a11y": {
         "noSvgWithoutTitle": "off",
@@ -99,6 +97,11 @@
   "json": {
     "parser": {
       "allowTrailingCommas": true
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "files": {

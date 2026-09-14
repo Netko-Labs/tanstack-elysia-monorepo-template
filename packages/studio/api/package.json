@@ -7,7 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "check-types": "tsgo --noEmit"
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@temp-repo/studio-config": "workspace:*",
@@ -15,7 +15,7 @@
     "@temp-repo/studio-service": "workspace:*",
     "@temp-repo/logger": "workspace:*",
     "@temp-repo/typescript-config": "workspace:*",
-    "elysia": "2.0.0-exp.25",
-    "zod": "^4.1.13"
+    "elysia": "2.0.0-beta.14",
+    "zod": "^4.6.5"
   }
 }

@@ -9,15 +9,15 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "check-types": "tsgo --noEmit",
+    "check-types": "tsc --noEmit",
     "cli": "bun run src/index.ts"
   },
   "dependencies": {
     "@temp-repo/typescript-config": "workspace:*",
-    "glob": "^11.0.0"
+    "glob": "^13.0.6"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.4",
-    "typescript": "^5"
+    "@types/bun": "^1.4.2",
+    "typescript": "^7.0.2"
   }
 }

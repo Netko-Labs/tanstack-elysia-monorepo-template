@@ -11,6 +11,6 @@
     "@temp-repo/studio-domain": "workspace:*"
   },
   "scripts": {
-    "check-types": "tsgo --noEmit"
+    "check-types": "tsc --noEmit"
   }
 }

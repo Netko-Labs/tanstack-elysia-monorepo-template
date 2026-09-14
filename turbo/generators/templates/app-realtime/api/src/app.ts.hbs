@@ -1,6 +1,7 @@
 import { createLogger } from '@temp-repo/logger'
 import { {{ camelCase name }}EnvConfig } from '@temp-repo/{{ name }}-config'
 import { Elysia } from 'elysia'
+import { websocket } from 'elysia/websocket'
 import { chatRoutes } from './routes/chat'
 import { roomRoutes } from './routes/room'
 
@@ -16,6 +17,8 @@ const allowedOrigins = {{ camelCase name }}EnvConfig.app.cors
  * `@elysiajs/cors` has no Elysia 2 build yet.
  */
 export const app = new Elysia()
+  // Elysia 2 gates .ws() behind an explicit capability plugin
+  .use(websocket())
   .request(({ set, request }) => {
     const origin = request.headers.get('origin')
     if (origin && allowedOrigins.includes(origin)) {
