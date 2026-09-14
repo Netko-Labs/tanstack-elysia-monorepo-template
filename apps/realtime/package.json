@@ -15,6 +15,7 @@
     "db:push": "bun run repo db:push --app realtime"
   },
   "dependencies": {
+    "@temp-repo/cli": "workspace:*",
     "@temp-repo/logger": "workspace:*",
     "@temp-repo/realtime-api": "workspace:*",
     "@temp-repo/realtime-config": "workspace:*",
