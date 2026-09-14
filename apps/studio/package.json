@@ -7,7 +7,7 @@
     "dev": "bun run repo dev --app studio",
     "serve": "bun run repo serve --app studio",
     "build": "bun run repo build --app studio",
-    "start": "bun --bun vite preview",
+    "start": "bun run .output/server/index.mjs",
     "docker:up": "bun run repo docker:up --app studio",
     "docker:down": "bun run repo docker:down --app studio",
     "db:migrate": "bun run repo db:migrate --app studio",

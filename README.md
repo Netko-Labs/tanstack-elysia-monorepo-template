@@ -272,6 +272,34 @@ Pinned to `elysia@2.0.0-beta.14` (the `next` tag — still pre-release, expect c
 
 Re-pin these when Elysia 2 and its plugins reach a stable release.
 
+## 🚀 Deploy — Coolify + Railpack
+
+Each app deploys as its own Coolify application, built from the **repo root** with the Railpack build pack. `bun run repo build --app {app}` produces a self-contained output plus a bundled migration runner; `apps/{app}/railpack.json` ships only that output (and the mise-installed bun) into the runtime image.
+
+| | studio | realtime |
+| --- | --- | --- |
+| Build variable | `RAILPACK_CONFIG_FILE=apps/studio/railpack.json` | `RAILPACK_CONFIG_FILE=apps/realtime/railpack.json` |
+| Output | `apps/studio/.output` (Nitro, bun preset) | `apps/realtime/dist` (`bun build --target bun`) |
+| Start | `bun run apps/studio/.output/server/index.mjs` | `bun run apps/realtime/dist/index.js` |
+| Pre-deployment command | `bun run apps/studio/.output/migrate/migrate.js` | `bun run apps/realtime/dist/migrate/migrate.js` |
+| Health check | `/api/health` | `/health` |
+| Port | `PORT` (default 3000) | `PORT` (default 3001) |
+
+```mermaid
+flowchart LR
+  G[git push] --> C[Coolify · Railpack]
+  C -->|bun install --frozen-lockfile| I[install]
+  I -->|bun run repo build --app X| B[build]
+  B -->|only .output / dist + bun| R[runtime image]
+  R -->|pre-deploy: migrate.js| DB[(Postgres)]
+  R -->|startCommand| App
+```
+
+- Base Directory stays `/`; Railpack detects bun from `bun.lock` + `packageManager`.
+- Env vars are read at **runtime** (the build needs none). Studio: `BASE_URL`, `AUTH_SECRET`, `ENCRYPTION_KEY`, `DATABASE_URL`, `CACHE_URL`, one social provider pair, optional `RESEND_API_KEY`/`EMAIL_FROM`, and `VITE_REALTIME_URL` (this one **is** baked in at build time — set it as a build variable too). Realtime: `DATABASE_URL`, `WEB_BASE_URL`, `CORS`.
+- `db:migrate` runs the same `src/db/migrate.ts` locally (drizzle's programmatic migrator), so dev and prod share one migration path; `drizzle-kit` only generates.
+- Adding an app via `gen:app` scaffolds its `railpack.json` and `migrate.ts` for the same flow.
+
 ## 🚧 Production Notes
 
 The `RoomHub` is **in-memory** (single instance). To scale the realtime server horizontally, back presence and fan-out with **Redis pub/sub** (or Postgres `LISTEN/NOTIFY`) so broadcasts reach clients across instances. Magic-link email uses Resend when `RESEND_API_KEY` is set (console fallback in dev).

@@ -5,8 +5,8 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "dev": "bun --bun vite dev",
-    "build": "bun --bun vite build",
-    "start": "bun --bun vite preview",
+    "build": "bun run repo build --app {{ name }}",
+    "start": "bun run .output/server/index.mjs",
     "docker:up": "repo docker:up --app {{ name }}",
     "docker:down": "repo docker:down --app {{ name }}",
     "db:migrate": "repo db:migrate --app {{ name }}",

@@ -67,6 +67,10 @@ ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend
 - Studio DB push: `bun run repo db:push --app studio`
 - Studio DB seed: `bun run repo db:seed --app studio`
 
+## Deploy
+
+Coolify + Railpack, built from the repo root. `bun run repo build --app {app}` emits a self-contained output (`apps/studio/.output` via Nitro's bun preset, `apps/realtime/dist` via `bun build --target bun`) plus `{out}/migrate/migrate.js` + the drizzle folder. `apps/{app}/railpack.json` (select per Coolify app with `RAILPACK_CONFIG_FILE=apps/{app}/railpack.json`) runs that build and ships only the output + bun into the runtime image; migrations run as the pre-deployment command `bun run {out}/migrate/migrate.js`. `db:migrate` uses the same `src/db/migrate.ts` locally. The build forces `NODE_ENV=production` (a dev value in `.env` would make Vite emit a development SSR bundle) and needs no secrets; `VITE_REALTIME_URL` is the one build-time value. Devtools are a dev-only lazy import (`components/core/root/root-devtools.tsx`) — Solid-based devtools must never reach the SSR bundle.
+
 ## Verification
 
 - Start with the smallest relevant check for the code you changed, then broaden as needed.

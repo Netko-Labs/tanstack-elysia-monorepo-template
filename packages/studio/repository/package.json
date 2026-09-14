@@ -6,7 +6,7 @@
   "scripts": {
     "check-types": "tsc --noEmit",
     "db:generate": "bunx --bun drizzle-kit generate",
-    "db:migrate": "bunx --bun drizzle-kit migrate",
+    "db:migrate": "bun run src/db/migrate.ts",
     "db:seed": "bun run ./src/db/seed.ts"
   },
   "devDependencies": {
