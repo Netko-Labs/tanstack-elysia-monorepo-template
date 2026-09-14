@@ -2,7 +2,7 @@ import { treaty } from '@elysiajs/eden'
 import type { App as RealtimeApp } from '@temp-repo/realtime-api'
 
 function getRealtimeUrl(): string {
-  return import.meta.env.VITE_REALTIME_URL ?? 'http://localhost:3001'
+  return import.meta.env.VITE_REALTIME_URL ?? 'https://realtime.localhost'
 }
 
 /** Fetch a fresh JWT for the current session (studio mints it via the jwt plugin). */

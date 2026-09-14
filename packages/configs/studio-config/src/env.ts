@@ -7,7 +7,7 @@ const isEnabled = (args: (string | undefined)[]): boolean => {
 const studioConfig: StudioConfig = {
   app: {
     dev: process.env.NODE_ENV !== 'production',
-    baseUrl: process.env.BASE_URL ?? 'http://localhost:3000',
+    baseUrl: process.env.BASE_URL ?? 'https://studio.localhost',
     port: Number(process.env.PORT ?? 3000),
     cors: process.env.CORS?.split(',') ?? [],
     encryptionKey: process.env.ENCRYPTION_KEY ?? '',

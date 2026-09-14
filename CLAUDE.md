@@ -15,11 +15,12 @@ they describe this repo's specific topology, scaffolding, and commands.
 
 ## Repository Overview
 
-- Runtime and package manager: `bun@1.2.23`
+- Runtime and package manager: `bun@1.4.0`
+- TypeScript 7 (native `tsc`); dev servers run through **portless** (`https://{app}.localhost`, names in `portless.json`, `PORTLESS=0` to bypass)
 - Monorepo tooling: Turborepo
 - Two apps:
   - `apps/studio` — TanStack Start (React 19, Tailwind, Base UI, Tabler Icons) frontend + an **auth-only** Elysia backend (better-auth: magic link + jwt/jwks). The frontend + identity provider.
-  - `apps/realtime` — a **headless** Bun/Elysia server (own port, `:3001`) that owns all transactional operations (todos, chat over HTTP) **and** a WebSocket room (presence + live chat). Verifies studio JWTs via JWKS — no shared secret.
+  - `apps/realtime` — a **headless** Bun/Elysia server (own process, `https://realtime.localhost`) that owns all transactional operations (todos, chat over HTTP) **and** a WebSocket room (presence + live chat). Verifies studio JWTs via JWKS — no shared secret.
 - Studio packages: `packages/studio/{domain,repository,service,api}` (auth only) + `packages/configs/studio-config`.
 - Realtime packages: `packages/realtime/{domain,repository,service,api}` + `packages/configs/realtime-config`.
 - Two databases: studio (auth tables) and realtime (business/realtime data).
@@ -36,20 +37,21 @@ ui`, plus `lib/`/`shared/` and the `domain` folder vocabulary) live in **Backend
 - `apps/studio` backend is **auth only**: better-auth is mounted at `/api/auth` (magic link + `jwt`/`jwks`). All transactional data + logic lives on the realtime server. Put `drizzle-zod` entities in the relevant `domain` package (`createInsertSchema()`/`createUpdateSchema()`/`createSelectSchema()`).
 - `apps/realtime` is a **standalone** Elysia server started with `.listen()` (NOT `.handle()`), so native WebSocket upgrades work. `packages/realtime/{domain,repository,service,api}` hold the tables/entities + WS event schemas, the DB client, business logic + an in-memory `RoomHub` + JWKS `verifyToken`, and the Elysia app (HTTP routes + the `.ws()` room). Elysia validators accept `drizzle-zod`/zod schemas directly (Standard Schema).
 - **Cross-service auth**: studio mints a JWT (`GET /api/auth/token`); the realtime server verifies it against studio's JWKS (`/api/auth/jwks`) with `jose` — no shared secret. The frontend attaches a Bearer JWT to realtime HTTP calls and passes `?token=` on the WebSocket.
-- **Elysia 2 (experimental, `2.0.0-exp.25`)**: the whole repo type-checks under **tsgo** — Elysia 2 fixed the `.ws()` cross-package instantiation that forced `tsc` on Elysia 1.x (no more tsc caveat). Migration specifics worth knowing: `@elysiajs/cors` has no Elysia-2 build yet, so realtime CORS is hand-rolled in `packages/realtime/api/src/app.ts` (a `request` hook + an `OPTIONS` preflight route); a `.ws()` route only populates `ws.query`/the message when a **schema is declared**; `ws.id` is empty and the `ws` object isn't stable across handlers, so the client supplies a unique **`?cid=`** per connection and `RoomHub` keys on it; and `ws.send` takes a **string** (events are JSON, the client `JSON.parse`s). With the tsgo constraint gone, **all routes live in the api package** — `packages/realtime/api/src/routes/{todos,chat,room}.ts` (HTTP routes **and** the `.ws()` room) — composed into the one exported `app`; the app entry (`apps/realtime`) just `.listen()`s it. The frontend consumes the WS via a native socket typed with `packages/realtime/domain` event schemas.
+- **Elysia 2 (pre-release, `2.0.0-beta.14`)**: the whole repo type-checks under TypeScript 7's native `tsc` — Elysia 2 fixed the `.ws()` cross-package instantiation that broke on Elysia 1.x. Migration specifics worth knowing: `.ws()` requires the capability plugin (`import { websocket } from 'elysia/websocket'` + `.use(websocket())` before the routes); `@elysiajs/cors` has no Elysia-2 build yet, so realtime CORS is hand-rolled in `packages/realtime/api/src/app.ts` (a `request` hook + an `OPTIONS` preflight route); a `.ws()` route only populates `ws.query`/the message when a **schema is declared**; `ws.id` is empty and the `ws` object isn't stable across handlers, so the client supplies a unique **`?cid=`** per connection and `RoomHub` keys on it; and `ws.send` takes a **string** (events are JSON, the client `JSON.parse`s). **All routes live in the api package** — `packages/realtime/api/src/routes/{todos,chat,room}.ts` (HTTP routes **and** the `.ws()` room) — composed into the one exported `app`; the app entry (`apps/realtime`) just `.listen()`s it. The frontend consumes the WS via a native socket typed with `packages/realtime/domain` event schemas.
 
 ## Scaffolding
 
 - **`bun run gen:app`** — Turbo generator in `turbo/generators/config.ts`. Prompts for a name and a **type** (`studio` | `realtime`), then creates the app under `apps/{name}` plus layered packages (`domain`, `repository`, `service`, `api`) and `packages/configs/{name}-config`.
-- **Studio template** — `turbo/generators/templates/app-tanstack/`. TanStack Start + Elysia HTTP API: `~/*` path alias, `components/core/root/` shell, Eden Treaty client under `src/integrations/eden/`, TanStack Query provider, `@temp-repo/ui`, Nitro + rolldown-vite.
+- **Studio template** — `turbo/generators/templates/app-tanstack/`. TanStack Start + Elysia HTTP API: `~/*` path alias, `components/core/root/` shell, Eden Treaty client under `src/integrations/eden/`, TanStack Query provider, `@temp-repo/ui`, Nitro + Vite 8.
 - **Realtime template** — `turbo/generators/templates/app-realtime/`. A headless Elysia WebSocket server (presence + chat room) with JWKS auth; mirrors `apps/realtime`.
 - **Reference app** — treat `apps/studio` as the living example when extending a generated app. Root `CLAUDE.md` applies to all apps unless an app adds a local override.
 - **`bun run gen:lib`** — shared library under `packages/shared/{name}`.
 
 ## Commands
 
-- Studio (frontend + auth) development: `bun run repo dev --app studio` (localhost:3000)
-- Realtime (WebSocket server) development: `bun run repo dev --app realtime` (localhost:3001)
+- Studio (frontend + auth) development: `bun run repo dev --app studio` (https://studio.localhost)
+- Realtime (WebSocket server) development: `bun run repo dev --app realtime` (https://realtime.localhost)
+- Bypass portless (plain `localhost:3000` / `:3001`): `PORTLESS=0 bun run repo dev --app <app>`
 - Web production build: `bun run repo build --app studio`
 - Web preview: `bun run repo serve --app studio`
 - Docker up/down: `bun run repo docker:up --app studio` / `bun run repo docker:down --app studio`

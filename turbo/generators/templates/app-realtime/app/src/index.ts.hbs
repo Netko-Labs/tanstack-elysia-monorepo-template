@@ -8,4 +8,5 @@ const logger = createLogger('{{ name }}')
 // the entry just starts the Bun server.
 const port = {{ camelCase name }}EnvConfig.app.port
 app.listen(port)
-logger.info(`🚀 {{ name }} server listening on http://localhost:${port}`)
+const url = process.env.PORTLESS_URL ?? `http://localhost:${port}`
+logger.info(`🚀 {{ name }} server listening on ${url}`)

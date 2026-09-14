@@ -1,0 +1,6 @@
+{
+  "apps": {
+    "apps/studio": { "name": "studio" },
+    "apps/realtime": { "name": "realtime" }
+  }
+}

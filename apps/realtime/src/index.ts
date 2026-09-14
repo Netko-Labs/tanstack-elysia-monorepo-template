@@ -7,4 +7,5 @@ const logger = createLogger('realtime')
 // The full app (HTTP routes + the WebSocket room) lives in @temp-repo/realtime-api;
 // the entry just starts the Bun server.
 app.listen(realtimeEnvConfig.app.port)
-logger.info(`🚀 realtime server listening on http://localhost:${realtimeEnvConfig.app.port}`)
+const url = process.env.PORTLESS_URL ?? `http://localhost:${realtimeEnvConfig.app.port}`
+logger.info(`🚀 realtime server listening on ${url}`)
