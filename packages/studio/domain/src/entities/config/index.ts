@@ -17,7 +17,7 @@ const _protoStudioConfigSchema = z.object({
   app: z.object({
     dev: z.boolean().default(false),
     port: z.number().default(3000),
-    cors: z.array(z.string()).default(['http://localhost:3000', 'http://localhost:5173']),
+    cors: z.array(z.string()).default(['https://studio.localhost', 'http://localhost:3000']),
     baseUrl: z.string().url(),
     sentryDsn: z.string().optional(),
     encryptionKey: z.string(),
@@ -33,7 +33,9 @@ const _protoStudioConfigSchema = z.object({
     emailAndPassword: z.object({
       enabled: z.boolean(),
     }),
-    trustedOrigins: z.array(z.string()).default(['http://localhost:3000', 'http://localhost:5173']),
+    trustedOrigins: z
+      .array(z.string())
+      .default(['https://studio.localhost', 'http://localhost:3000']),
     socialProviders: z.object({
       github: _protoSocialProviderSchema.transform(transformSocialProviderSchema).optional(),
       google: _protoSocialProviderSchema.transform(transformSocialProviderSchema).optional(),
