@@ -7,7 +7,7 @@
     "dev": "bun run repo dev --app {{ name }}",
     "serve": "bun run repo serve --app {{ name }}",
     "build": "bun run repo build --app {{ name }}",
-    "start": "NODE_ENV=production bun run src/index.ts",
+    "start": "NODE_ENV=production bun run dist/index.js",
     "docker:up": "bun run repo docker:up --app {{ name }}",
     "docker:down": "bun run repo docker:down --app {{ name }}",
     "db:migrate": "bun run repo db:migrate --app {{ name }}",

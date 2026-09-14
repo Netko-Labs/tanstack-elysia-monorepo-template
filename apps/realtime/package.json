@@ -7,7 +7,7 @@
     "dev": "bun run repo dev --app realtime",
     "serve": "bun run repo serve --app realtime",
     "build": "bun run repo build --app realtime",
-    "start": "NODE_ENV=production bun run src/index.ts",
+    "start": "NODE_ENV=production bun run dist/index.js",
     "docker:up": "bun run repo docker:up --app realtime",
     "docker:down": "bun run repo docker:down --app realtime",
     "db:migrate": "bun run repo db:migrate --app realtime",
