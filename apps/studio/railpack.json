@@ -3,20 +3,16 @@
   "provider": "node",
   "steps": {
     "build": {
+      "deployOutputs": [],
       "commands": ["...", "bun run repo build --app studio"]
     }
   },
   "deploy": {
+    "paths": ["/mise/installs/bun/latest/bin"],
     "inputs": [
       {
         "step": "packages:mise",
-        "include": [
-          "/mise/shims",
-          "/mise/installs",
-          "/usr/local/bin/mise",
-          "/etc/mise/config.toml",
-          "/root/.local/state/mise"
-        ]
+        "include": ["/mise/installs/bun"]
       },
       {
         "step": "build",
